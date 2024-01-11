@@ -1,0 +1,222 @@
+# review samples that failed 
+# /home/nbowers/bvbrc-dev/dev_container/modules/bvbrc_SARS2WasteWater/service-scripts/comparison_data_output
+# /home/nbowers/bvbrc-dev/dev_container/modules/bvbrc_SARS2WasteWater/service-scripts/comparison_data_staging
+
+
+msg = "snakefile command recieved - FREYJA AND POST PROCESSING \n"
+sys.stderr.write(msg)
+
+# ruleorder: samtools > freyja > sample_freyja_vis > set_freyja_vis > multiqc
+### Define wildcards ###
+pe_zpd_samples = glob_wildcards("staging/pe_reads/{sample}_R{read_num}.fastq.gz").sample
+pe_unzpd_samples = glob_wildcards("staging/pe_reads/{sample}_R{read_num}.fastq").sample
+se_zpd_samples = glob_wildcards("staging/se_reads/{sample}.fastq.gz").sample
+se_unzpd_samples = glob_wildcards("staging/se_reads/{sample}.fastq").sample
+samples = pe_zpd_samples+ pe_unzpd_samples + se_zpd_samples + se_unzpd_samples
+
+### Define functions for global handelers: Onstart, onsuccess and onerror ###
+# Define the onstart handler
+def onstart(samples):
+    print(f"Starting workflow for {wildcards}")
+# Define the onsuccess handler
+def onsuccess(samples):
+    print(f"Workflow completed successfully for {wildcards}")
+
+# Define the onerror handler
+def onerror(wildcards, input, output, error):
+    msg = f"Error occurred for {wildcards} \n \
+    Input: {input} \n \
+    Output: {output} \n \
+    Error: {error}"
+    with open("JobFailed.txt", "w") as failed_samples:
+        print(msg)
+    pass
+
+### Define global handlers ###
+onstart: onstart
+onsuccess: onsuccess
+onerror: onerror
+configfile: "config.json"
+workflow_dir = config["workflow_dir"]
+minimum_genome_coverage = config["params"]["minimum_genome_coverage"]
+depth_cutoff = config["params"]["depth_cutoff"]
+# figure out how to do a boolean opperator 
+# confirmed_only = config["params"]["confirmedonly"]
+
+
+rule all:
+    input:
+        expand("output/{sample}/assembly/{sample}_ivar_sorted.bam", sample=samples),
+        expand("output/{sample}/{sample}.freyja", sample=samples),
+        expand("output/{sample}/{sample}_plot_filename.png", sample=samples),
+        expand("tmp/{sample}.freyja", sample=samples),
+        expand("output/plot_filename.png", sample=samples),
+        expand("clean_up/multiqc_data", sample=samples)
+
+rule samtools:
+    input:
+        ivar_bam = "output/{sample}/assembly/{sample}.ivar.bam",
+    output:
+        ivar_bam_sorted = "output/{sample}/assembly/{sample}_ivar_sorted.bam",
+        samtools_index = "output/{sample}/assembly/{sample}.index"
+    shell:
+        """
+        samtools sort \
+            {input.ivar_bam} \
+            -o {output.ivar_bam_sorted} \
+            --threads 12 
+
+        samtools index \
+            {output.ivar_bam_sorted} \
+            {output.samtools_index}
+        """
+
+rule freyja:
+    input:
+        ivar_bam_sorted = "output/{sample}/assembly/{sample}_ivar_sorted.bam",
+        reference = "output/{sample}/assembly/reference_trimmed.fa"
+    conda:
+        "/home/nbowers/covid_waste_water/frejya/freyja_dev_env.yml"
+    params:
+        freyja_analysis_dir = directory("output/{sample}"),
+        #dco = depth_cutoff
+    output:
+        variants = "output/{sample}/{sample}_freyja_variants.tsv",
+        depth = "output/{sample}/{sample}_freyja.depths",
+        freyja_file = "output/{sample}/{sample}.freyja"
+    shell:
+        """
+        mkdir -p {params.freyja_analysis_dir}
+
+        freyja variants \
+            {input.ivar_bam_sorted} \
+            --variants {output.variants} \
+            --depths {output.depth} \
+            --ref {input.reference}
+
+        freyja demix \
+            {output.variants} \
+            {output.depth} \
+            --output {output.freyja_file}
+        """
+# mkdir -p {params.freyja_analysis_dir}
+
+# freyja variants \
+#     {input.ivar_bam_sorted} \
+#     --variants {output.variants} \
+#     --depths {output.depth} \
+#     --ref {input.reference}
+
+# freyja demix \
+#     {output.variants} \
+#     {output.depth} \
+#     --depthcutoff {params.dco} \
+#     --output {output.freyja_file}
+rule sample_freyja_vis:
+    input:
+        freyja_file = "output/{sample}/",
+        # Freyja aggregate command expects a directory not the files themselves 
+        #freyja_file = "output/{sample}/{sample}.freyja",
+    conda:
+        "/home/nbowers/covid_waste_water/frejya/freyja_dev_env.yml"
+    params:
+        ext = ".freyja"
+        #mgc = minimum_genome_coverage
+    output:
+        single_aggregate = "output/{sample}/{sample}_filename.tsv",
+        plot = "output/{sample}/{sample}_plot_filename.png"
+
+    shell:
+        """
+        freyja aggregate \
+            {input.freyja_file} \
+            --ext {params.ext} \
+            --output {output.single_aggregate}
+
+        freyja plot \
+            {output.single_aggregate} \
+            --output {output.plot}
+        """
+        # """
+        # freyja aggregate \
+        #     {input.freyja_file} \
+        #     --ext {params.ext} \
+        #     --mincov {params.mgc} \
+        #     --output {output.single_aggregate}
+
+        # freyja plot \
+        #     {output.single_aggregate} \
+        #     --output {output.plot}
+        # """
+rule temp_dir_freyja_results:
+    input:
+        freyja_file = "output/{sample}/{sample}.freyja"
+    params:
+        tmp_dir = directory("./tmp/")
+    output:
+        tmp_freyja = "tmp/{sample}.freyja"
+    shell:
+        """
+        cp {input.freyja_file} {output.tmp_freyja}
+        """
+
+rule set_freyja_vis:
+    input:
+        # Freyja aggregate command expects a directory not the files themselves
+        # using set to make sure all files are present before this command runs
+        set_freyja_files = set(expand("output/{sample}/{sample}.freyja", sample=samples))
+    conda:
+       "/home/nbowers/covid_waste_water/frejya/freyja_dev_env.yml"
+    params:
+        ext = ".freyja",
+        #the directory needs to end with "/"
+        tmp_dir = directory("tmp/"),
+        #mgc = minimum_genome_coverage
+    output:
+        aggregated = "output/aggregated_filename.tsv",
+        plot = "output/plot_filename.png"
+    shell:
+        """
+        freyja aggregate \
+            {params.tmp_dir} \
+            --ext {params.ext} \
+            --output {output.aggregated}
+
+        freyja plot \
+            {output.aggregated} \
+            --output {output.plot}
+        """
+        # """
+        # freyja aggregate \
+        #     {params.tmp_dir} \
+        #     --ext {params.ext} \
+        #     --mincov {params.mgc} \
+        #     --output {output.aggregated}
+
+        # freyja plot \
+        #     {output.aggregated} \
+        #     --output {output.plot}
+        # """
+
+rule multiqc:
+    input:
+       multiqc_config = os.path.join(workflow_dir, "multiqc_config.yaml"),
+    params:
+        landing_dir = directory('output'),
+        tmp_multiqc_dir = directory('output/multiqc_data')
+    output:
+        'output/multiqc_report.html',
+        cl_multiqc_dir = directory('clean_up/multiqc_data')
+    shell:
+        '''
+        multiqc --version
+
+        multiqc output/. \
+            -c {input.multiqc_config} \
+            -o {params.landing_dir} --fullnames \
+            -f
+        
+        mkdir -p {output.cl_multiqc_dir}
+
+        mv {params.tmp_multiqc_dir} {output.cl_multiqc_dir}
+        '''

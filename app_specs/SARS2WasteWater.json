@@ -1,0 +1,206 @@
+{
+  "id": "SARS2WasteWater",
+  "script": "App-SARS2WasteWater",
+  "label": "Assemble SARS2 reads",
+  "description": "Assemble SARS2 reads into a consensus sequence",
+  "parameters": [
+    {
+      "id": "paired_end_libs",
+      "type": "group",
+      "allow_multiple": true,
+      "required": 0,
+      "default": null,
+      "group": [
+        {
+            "id": "sample_id",
+            "required": 1,
+            "label": "id for the sample",
+            "desc": "Sample Id that will be used for filenames",
+            "default": "sample",
+            "type": "string"
+        },
+        {
+          "id": "read1",
+          "required": 1,
+          "label": "Read file 1",
+          "desc": "FASTQ file of reads",
+          "wstype": "ReadFile",
+          "type": "wstype"
+        },
+        {
+          "id": "read2",
+          "required": 0,
+          "label": "Read file 2",
+          "desc": "FASTQ file of reads",
+          "wstype": "ReadFile",
+          "type": "wstype"
+        },
+        {
+          "id": "platform",
+          "label": "Sequencing Platform",
+          "required": 0,
+          "default": "infer",
+          "desc": "Sequencing platform used to generate the read library",
+          "type": "enum",
+          "enum": [
+            "infer",
+            "illumina",
+            "pacbio",
+            "nanopore",
+            "iontorrent"
+          ]
+        },
+        {
+          "id": "interleaved",
+          "label": "Are the paired end reads interleaved?",
+          "required": false,
+          "default": false,
+          "type": "bool"
+        },
+        {
+          "id": "read_orientation_outward",
+          "label": "Do the two reads in each pair face outward?",
+          "required": false,
+          "default": false,
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "id": "single_end_libs",
+      "type": "group",
+      "allow_multiple": true,
+      "required": 0,
+      "default": null,
+      "group": [
+        {
+            "id": "sample_id",
+            "required": 1,
+            "label": "id for the sample",
+            "desc": "Sample Id that will be used for filenames",
+            "default": "sample",
+            "type": "string"
+        },
+        {
+          "id": "read",
+          "required": 1,
+          "label": "Read file",
+          "desc": "FASTQ file of reads",
+          "wstype": "ReadFile",
+          "type": "wstype"
+        },
+        {
+          "id": "platform",
+          "label": "Sequencing Platform",
+          "required": 0,
+          "default": "infer",
+          "desc": "Sequencing platform used to generate the read library",
+          "type": "enum",
+          "enum": [
+            "infer",
+            "illumina",
+            "pacbio",
+            "nanopore",
+            "iontorrent"
+          ]
+        }
+      ]
+    },
+    {
+        "id": "srr_libs",
+        "type": "group",
+        "allow_multiple": true,
+        "required": 0,
+        "default" : null,
+        "group": [
+            {
+                "id": "sample_id",
+                "required": 1,
+                "label": "id for the sample filename",
+                "desc": "Sample Id that will be used for filenames",
+                "default": "sample",
+                "type": "string"
+            },
+            {
+                "id": "srr_accession",
+                "required": 1,
+                "label": "SRR Accession",
+                "desc": "SRA Sample accession with SRR prefix",
+                "type": "string"
+            },
+        ]
+    },
+    {
+	  "id": "primers",
+	  "label": "Primer set to use for assembly",
+	  "desc": "Primer set to use for assembly",
+	  "required": 1,
+	  "default": "ARTIC",
+	  "type": "enum",
+	  "enum": ["ARTIC", "midnight", "qiagen", "swift", "varskip", "varskip-long"]
+    },
+    {
+        "id": "minimum_genome_coverage",
+        "label": "The minimum genome coverage to be included in the freyja results",
+        "desc": "The minimum genome coverage to be included in the freyja results",
+        "required": 0,
+        "type": "int",
+        "default": 60
+    },
+    {
+      "id": "confirmedonly",
+      "label": "Excludes unconfirmed lineages from the analysis.",
+      "desc": "Excludes unconfirmed lineages from the analysis.",
+      "required": false,
+      "default": false,
+      "type": "bool"
+    },
+    {
+      "id": "depth_cutoff",
+      "label": "Exclude sites with coverage less than a specified value",
+      "desc": "Exclude sites with coverage less than a specified value",
+      "required": 0,
+      "type": "int",
+      "default": 0
+    },
+    {
+	  "id": "primer_version",
+	  "label": "Version number for primer",
+	  "desc": "Version number for primer",
+	  "required": 0,
+	  "type": "string"
+    },
+    {
+      "id": "keep_intermediates",
+      "label": "Keep all intermediate output from the pipeline",
+      "required": 0,
+      "default": 0,
+      "desc": "Keep all intermediate output from the pipeline",
+      "type": "int"
+    },
+    {
+      "id": "output_path",
+      "label": "Output Folder",
+      "required": 1,
+      "default": null,
+      "desc": "Path to which the output will be written. Defaults to the directory containing the input data. ",
+      "type": "folder"
+    },
+    {
+      "id": "output_file",
+      "label": "File Basename",
+      "required": 1,
+      "default": null,
+      "desc": "Basename for the generated output files. Defaults to the basename of the input data.",
+      "type": "wsid"
+    },
+    {
+      "id": "debug_level",
+      "label": "Debug level",
+      "required": 0,
+      "default": 0,
+      "desc": "Debugging level.",
+      "type": "int"
+    }
+  ]
+}
