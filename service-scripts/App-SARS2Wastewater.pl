@@ -1,11 +1,12 @@
+### ### ### ### ### ### edits to barcodes filepath once it is the correct location ### ### ### ### ### ###
 #
-# Module to encapsulate SARS2 WastewaAter Analysis code.
+# App wrapper for the SARS2Waterwater analysis pipeline.
 # This runs snakemake files for sars2-onecodex and Freyja
 #
 
 use Bio::KBase::AppService::AppScript;
 use Bio::KBase::AppService::ReadSet;
-# use Bio::KBase::AppService::AppConfig qw(metagenome_dbs);
+use Bio::KBase::AppService::AppConfig qw(metagenome_dbs);
 use File::Slurp;
 use IPC::Run;
 use Cwd qw(abs_path getcwd);
@@ -17,24 +18,14 @@ use File::Temp;
 use JSON::XS;
 use Getopt::Long::Descriptive;
 
-my $app = Bio::KBase::AppService::AppScript->new(\&run_classification, \&preflight);
+my $app = Bio::KBase::AppService::AppScript->new(\&run_app, \&preflight);
 
 $app->run(\@ARGV);
 
-sub run_classification
+sub run_app
 {
     my($app, $app_def, $raw_params, $params) = @_;
-    ### testing ###
-    # my %config_vars;
-    # my $wf_dir = "$ENV{KB_TOP}/workflows/$ENV{KB_MODULE_DIR}";
-    # if (! -d $wf_dir)
-    # {
-	# $wf_dir = "$ENV{KB_TOP}/modules/$ENV{KB_MODULE_DIR}/workflow";
-    # }
-    # -d $wf_dir or die "Workflow directory $wf_dir does not exist";
-    # print $wf_dir;
-	### end testing ###
-    process_read_input($app, $params);
+	process_read_input($app, $params);
 }
 
 sub process_read_input
@@ -82,10 +73,9 @@ sub process_read_input
 			      },
 			     );
     $params->{$_} = $nparams->{$_} foreach keys %$nparams;
-    
+
     print STDERR "Starting the config json....\n";
     my $json_string = encode_json($params);
-
 
     #
     # Create json config file for the execution of this workflow.
@@ -98,12 +88,12 @@ sub process_read_input
     #
 
     my %config_vars;
-    # my $wf_dir = "$ENV{KB_TOP}/workflows/$ENV{KB_MODULE_DIR}";
-    my $wf_dir = "/home/nbowers/bvbrc-dev/dev_container/modules/bvbrc_SARS2Wastewater/workflow";
+    # temp barcode path
+    my $barcodes_path = "/vol/idph/example/usher_barcodes.csv";
+    my $wf_dir = "$ENV{KB_TOP}/workflows/$ENV{KB_MODULE_DIR}";
     if (! -d $wf_dir)
     {
-	# $wf_dir = "$ENV{KB_TOP}/modules/$ENV{KB_MODULE_DIR}/workflow";
-    $wf_dir = "/home/nbowers/bvbrc-dev/dev_container/modules/bvbrc_SARS2Wastewater/workflow";
+	$wf_dir = "$ENV{KB_TOP}/modules/$ENV{KB_MODULE_DIR}/workflow";
     }
     -d $wf_dir or die "Workflow directory $wf_dir does not exist";
 
@@ -112,15 +102,17 @@ sub process_read_input
     # use this.
     #
     my $snakemake = "$ENV{KB_RUNTIME}/artic-ncov2019/bin/snakemake";
+    $config_vars{barcodes_path} = $barcodes_path;
     $config_vars{workflow_dir} = $wf_dir;
     $config_vars{input_data_dir} = $staging;
     $config_vars{output_data_dir} = $output;
     $config_vars{snakemake} = $snakemake;
     $config_vars{cores} = $ENV{P3_ALLOCATED_CPU} // 2;
+
+    # add the params to the config file
     $config_vars{params} = $params;
     # write a config for the wrapper to parse
     write_file("$top/config.json", JSON::XS->new->pretty->canonical->encode(\%config_vars));
-
     # pushing the wrapper command
     print STDERR "Starting the python wrapper....\n";
     
@@ -133,7 +125,7 @@ sub process_read_input
      die "wrapper command failed $?: @cmd";
     }
 
-    # save_output_files($app, $output);
+    save_output_files($app, $output);
 }
 
 sub preflight
@@ -149,8 +141,8 @@ sub preflight
 	die "Readset failed to validate. Errors:\n\t" . join("\n\t", @$errs);
     }
 
-    my $mem = $resource_required->{mem};
-    my $policy = $resource_required->{policy};
+    # using the memory requirement for the sars-onecodex assembly
+    my $mem = '16G';
     
     my $time = 60 * 60 * 10;
     my $pf = {
@@ -158,7 +150,6 @@ sub preflight
 	memory => $mem,
 	runtime => $time,
 	storage => 1.1 * ($comp_size + $uncomp_size),
-	($policy ? (policy_data => $policy) : ()),
     };
     return $pf;
 }
@@ -167,12 +158,16 @@ sub save_output_files
 {
     my($app, $output) = @_;
     my %suffix_map = (
+        bai => 'bai',
+        bam => 'bam',
         csv => 'csv',
-        freyja => 'tsv',
-        depths => 'tsv',
+        depths => 'txt',
         err => 'txt',
+        fasta => "contigs",
         html => 'html',
         out => 'txt',
+        png => 'png',
+        tsv => 'tsv',
         txt => 'txt',);
 
     my @suffix_map = map { ("--map-suffix", "$_=$suffix_map{$_}") } keys %suffix_map;
