@@ -8,14 +8,3 @@ show_analysis_time: False
 custom_logo: bv-brc-header-logo-bg.png
 custom_logo_url: https://www.bv-brc.org/
 custom_logo_title: Bacterial and Viral Bioinformatics Resource Center
-module_order:
-    - Kraken
-    - fastqc:
-        name: "FastQC (host removed)"
-        anchor: "fastqc_host removed"
-        info: "This section of the report shows FastQC results after removing reads that aligned with the host genome."
-        target: ""
-    - fastqc:
-        name: "FastQC (raw)"
-        anchor: "fastqc_raw"
-    - General Stats
