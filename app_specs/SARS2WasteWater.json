@@ -12,12 +12,12 @@
       "default": null,
       "group": [
         {
-            "id": "sample_id",
-            "required": 1,
-            "label": "id for the sample",
-            "desc": "Sample Id that will be used for filenames",
-            "default": "sample",
-            "type": "string"
+          "id": "sample_id",
+          "required": 1,
+          "label": "id for the sample",
+          "desc": "Sample Id that will be used for filenames",
+          "default": "sample",
+          "type": "string"
         },
         {
           "id": "read1",
@@ -131,21 +131,55 @@
         ]
     },
     {
-	  "id": "primers",
-	  "label": "Primer set to use for assembly",
-	  "desc": "Primer set to use for assembly",
-	  "required": 1,
-	  "default": "ARTIC",
-	  "type": "enum",
-	  "enum": ["ARTIC", "midnight", "qiagen", "swift", "varskip", "varskip-long"]
+      "id": "recipe",
+      "label": "Assembly recipe",
+      "required": 0,
+      "default": "auto",
+      "desc": "Recipe used for assembly",
+      "type": "enum",
+      "enum": ["onecodex",
+      ]
+    },
+    {
+      "id": "primers",
+      "label": "Primer set to use for assembly",
+      "desc": "Primer set to use for assembly",
+      "required": 1,
+      "default": "ARTIC",
+      "type": "enum",
+      "enum": ["ARTIC", "midnight", "qiagen", "swift", "varskip", "varskip-long"]
+    },
+    {
+      "id": "minimum_base_quality_score",
+      "label": "The minimum base quality score",
+      "desc": "Controls the --minq flag for the freyja variant command.",
+      "required": 0,
+      "type": "int",
+      "default": 20
     },
     {
         "id": "minimum_genome_coverage",
-        "label": "The minimum genome coverage to be included in the freyja results",
-        "desc": "The minimum genome coverage to be included in the freyja results",
+        "label": "The minimum genome coverage",
+        "desc": "This is the '--mincov' flag to the Freyja aggregate command.",
         "required": 0,
         "type": "int",
         "default": 60
+    },
+    {
+      "id": "agg_minimum_lineage_abundance",
+      "label": "Minimum lineage abundance for the plot command",
+      "desc": "'--thresh' flag for the freyja plot command. This allows the user to define the minimum lineage abundance returned to the user",
+      "required": 0,
+      "type": "float",
+      "default": 0.01
+    },
+    {
+      "id": "minimum_coverage_depth",
+      "label": "The minimum coverage depth minimum. ",
+      "desc": "controls the --depthcutoff value for the Freyja demix command. Sites with coverage less than the specified value are excluded",
+      "required": 0,
+      "type": "int",
+      "default": 0
     },
     {
       "id": "confirmedonly",
@@ -156,27 +190,58 @@
       "type": "bool"
     },
     {
-      "id": "depth_cutoff",
-      "label": "Exclude sites with coverage less than a specified value",
-      "desc": "Exclude sites with coverage less than a specified value",
+      "id": "minimum_lineage_abundance",
+      "label": "Minimum lineage abundance",
+      "desc": "'--eps' flag for the freyja demix command. Allows the user to define the minimum lineage abundance returned to the user",
       "required": 0,
-      "type": "int",
-      "default": 0
+      "type": "float",
+      "default": 0.001
     },
     {
-	  "id": "primer_version",
-	  "label": "Version number for primer",
-	  "desc": "Version number for primer",
-	  "required": 0,
-	  "type": "string"
+      "id": "coverage_estimate",
+      "label": "coverage estimate value",
+      "desc": "The coverage value provides the 10x coverage estimate (percent of sites with 10 or greater reads. 10 is the default but can be modfied using the --covcut option in demix).",
+      "required": 0,
+      "type": "int",
+      "default": 10
+    },
+    {
+      "id": "timeseries_plot_interval",
+      "label": "Timeseries plot interval",
+      "desc": "Timeseries plot interval - controls the --interval flag of the freyja plot command [MS or D (month/day bins)]",
+      "required": 0,
+      "type": "string",
+      "default": "0"
+    },
+    {
+      "id": "primer_version",
+      "label": "Version number for primer",
+      "desc": "Version number for primer",
+      "required": 0,
+      "type": "string"
+    },
+    {
+      "id": "barcode_csv",
+      "label": "Custom barcode path",
+      "desc": "This is for the '--barcodes' flag to control the barcodes used in the demix command.",
+      "required": 0,
+      "type": "string"
+    },
+    {
+      "id": "sample_metadata_csv",
+      "label": "Sample metadata csv",
+      "desc": "A .CSV with the input fastq file - if paired read use read 1 - and corresponding sampling date.",
+      "required": 0,
+      "default": "0",
+      "type": "string"
     },
     {
       "id": "keep_intermediates",
       "label": "Keep all intermediate output from the pipeline",
-      "required": 0,
-      "default": 0,
+      "required": false,
+      "default": true,
       "desc": "Keep all intermediate output from the pipeline",
-      "type": "int"
+      "type": "bool"
     },
     {
       "id": "output_path",
