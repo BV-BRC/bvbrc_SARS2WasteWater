@@ -66,7 +66,7 @@ rule zpd_assembly:
         output_base = '{zpd_sample}',
         output_dir = 'output/{zpd_sample}/assembly',
         primer_type = primer,
-        primer_version = primer_ver
+        primer_version = primer_ver,
     output:
         ivar_bam = 'output/{zpd_sample}/assembly/{zpd_sample}.ivar.bam',
         ivar_sorted_bam = 'output/{zpd_sample}/assembly/{zpd_sample}.sorted.bam'
@@ -113,10 +113,8 @@ rule fastqc_zpd_reads:
     params:
         fastqc_dir = 'output/{zpd_sample}/fastqc_results',
         clean_up = 'clean_up',
-        fastqc_zip = 'output/{zpd_sample}/fastqc_results/{zpd_sample}_fastqc.zip'
     output:
         fastqc_html = 'output/{zpd_sample}/fastqc_results/{zpd_sample}_fastqc.html',
-        fastqc_zip = 'clean_up/{zpd_sample}_fastqc.zip'
     shell:
         '''
         mkdir -p {params.fastqc_dir}
@@ -126,8 +124,6 @@ rule fastqc_zpd_reads:
 
         /opt/patric-common/runtime/bin/fastqc {input.raw_read} \
         -o {params.fastqc_dir} -q
-
-        mv {params.fastqc_zip} {output.fastqc_zip}
         '''
 
 rule fastqc_unzpd_reads:
@@ -136,10 +132,8 @@ rule fastqc_unzpd_reads:
     params:
         fastqc_dir = 'output/{unzpd_sample}/fastqc_results',
         clean_up = 'clean_up',
-        fastqc_zip = 'output/{unzpd_sample}/fastqc_results/{unzpd_sample}_fastqc.zip'
     output:
         fastqc_html = 'output/{unzpd_sample}/fastqc_results/{unzpd_sample}_fastqc.html',
-        fastqc_zip = 'clean_up/{unzpd_sample}_fastqc.zip'
     shell:
         '''
         mkdir -p {params.fastqc_dir}
@@ -149,8 +143,6 @@ rule fastqc_unzpd_reads:
 
         /opt/patric-common/runtime/bin/fastqc {input.raw_read} \
         -o {params.fastqc_dir} -q
-
-        mv {params.fastqc_zip} {output.fastqc_zip}
         '''
 
 rule fastqc_ivar:
@@ -160,13 +152,9 @@ rule fastqc_ivar:
     params:
         fastqc_dir = 'output/{sample}/fastqc_results',
         clean_up = 'clean_up',
-        ivar_zip = 'output/{sample}/fastqc_results/{sample}.ivar_fastqc.zip',
-        ivar_sorted_zip = 'output/{sample}/fastqc_results/{sample}.sorted_fastqc.zip'
     output:
         ivar_html = 'output/{sample}/fastqc_results/{sample}.ivar_fastqc.html',
         ivar_sorted_html = 'output/{sample}/fastqc_results/{sample}.sorted_fastqc.html',
-        ivar_zip = 'clean_up/{sample}.ivar_fastqc.zip',
-        ivar_sorted_zip = 'clean_up/{sample}.sorted_fastqc.zip',
     shell:
         '''
         mkdir -p {params.fastqc_dir}
@@ -177,10 +165,6 @@ rule fastqc_ivar:
         /opt/patric-common/runtime/bin/fastqc {input.ivar_bam} \
         -o {params.fastqc_dir} -q
 
-        mv {params.ivar_zip} {output.ivar_zip}
-
         /opt/patric-common/runtime/bin/fastqc {input.ivar_sorted_bam} \
         -o {params.fastqc_dir} -q
-
-        mv {params.ivar_sorted_zip} {output.ivar_sorted_zip}
         '''
