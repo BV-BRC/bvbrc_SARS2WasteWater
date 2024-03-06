@@ -1,7 +1,10 @@
+#### before pushing to alpha fix sample level metadata (primers and dates) ###
+#### before pushing production to uncomment multiqc for production ###
+
 msg = "snakefile command recieved - FREYJA AND POST PROCESSING \n"
 sys.stderr.write(msg)
 
-# ruleorder: samtools > freyja > sample_freyja_vis > set_freyja_vis > multiqc
+# ruleorder: freyja_variants > freyja_demix > sample_freyja_vis
 ### Define wildcards ###
 pe_zpd_samples = glob_wildcards("staging/pe_reads/{sample}_R{read_num}.fastq.gz").sample
 pe_unzpd_samples = glob_wildcards("staging/pe_reads/{sample}_R{read_num}.fastq").sample
@@ -38,6 +41,7 @@ workflow_dir = config["workflow_dir"]
 minimum_base_quality_score_val = config["params"]["minimum_base_quality_score"]
 ### freyja demix command variables ###
 barcodes_path = config["barcodes_path"]
+curated_linages = config["curated_linages"]
 eps_val = config["params"]["minimum_lineage_abundance"]
 covcut_val = config["params"]["coverage_estimate"]
 depthcutoff_val = config["params"]["minimum_coverage_depth"]
@@ -56,17 +60,17 @@ primer_version = config["params"]["primer_version"]
 
 # Define base rule all
 rule_all_list = [
+        expand("output/{sample}/{sample}_freyja_variants.tsv", sample=samples),
         expand("output/{sample}/{sample}_demixing_result.csv", sample=samples),
-        expand("output/{sample}/{sample}_mix_variant_plot.png", sample=samples),
-        expand("tmp/{sample}_demixing_result.csv", sample=samples),
+        expand("output/{sample}/{sample}_variant_plot.png", sample=samples),
         expand("output/summarized_variants.png", sample=samples),
-        expand("output/version_log.txt", sample=samples),
-        expand("output/multiqc_report.html", sample=samples)
+        expand("output/version_log.txt"),
+        expand("output/multiqc_report.html")
     ]
 
-# If metadata.csv is passed then make the time series plots
-if os.path.exists(config["edited_sample_metadata_csv"]):
-    edited_sample_metadata_csv_path = config["edited_sample_metadata_csv"]
+# If metadata.tsv is passed then make the time series plots
+if os.path.exists(config["staging_sample_metadata_path"]):
+    edited_sample_metadata_csv_path = config["staging_sample_metadata_path"]
     if config["params"]["timeseries_plot_interval"] != "0":
         rule_all_list.append("output/multisample_timeseries.png")
         timeseries_interval_val = config["params"]["timeseries_plot_interval"]
@@ -76,7 +80,17 @@ if os.path.exists(config["edited_sample_metadata_csv"]):
 else:
     edited_sample_metadata_csv_path = ""
     timeseries_interval_val = ""
-    msg = f"Sample metadata CSV file unavailable. Not producing time series plots"
+    msg = f"Sample metadata tsv file unavailable. Not producing time series plots"
+    sys.stderr.write(msg)
+    pass
+
+## Add Multisample rules to rule all ##
+if len(samples) != 1:
+    rule_all_list.append("output/multisample_demix_results.tsv")
+    rule_all_list.append("output/summarized_variants.png")
+    rule_all_list.append("output/lineage_variants.png")
+else:
+    msg = f"Only one sample. Not producing multisample outputs"
     sys.stderr.write(msg)
     pass
 
@@ -84,22 +98,19 @@ rule all:
     input:
         rule_all_list
 
-rule freyja:
+rule freyja_variants:
     input:
         ivar_bam_sorted = "output/{sample}/assembly/{sample}.sorted.bam",
         reference = "output/{sample}/assembly/reference_trimmed.fa",
-        barcodes = barcodes_path
+        curated_linages_ = curated_linages
     params:
+        eps = eps_val,
         freyja_analysis_dir = directory("output/{sample}"),
         minimum_base_quality_score = minimum_base_quality_score_val,
-        eps = eps_val,
-        covcut = covcut_val,
-        confirmedonly = confirmed_only_status,
-        depthcutoff = depthcutoff_val,
+        tmp_dir = directory("./tmp/")
     output:
         variants = "output/{sample}/{sample}_freyja_variants.tsv",
         depth = "output/{sample}/{sample}_freyja.depths",
-        freyja_file = "output/{sample}/{sample}_demixing_result.csv"
     shell:
         """
         mkdir -p {params.freyja_analysis_dir}
@@ -110,16 +121,40 @@ rule freyja:
             --variants {output.variants} \
             --depths {output.depth} \
             --ref {input.reference}
+        """
+
+rule freyja_demix:
+    input:
+        barcodes = barcodes_path,
+        curated_linages_ = curated_linages,
+        variants = "output/{sample}/{sample}_freyja_variants.tsv",
+        depth = "output/{sample}/{sample}_freyja.depths",
+    params:
+        eps = eps_val,
+        covcut = covcut_val,
+        confirmedonly = confirmed_only_status,
+        depthcutoff = depthcutoff_val,
+        tmp_dir = directory("tmp/"),
+        error_msg = "tmp/{sample}_demix_error.txt"
+    output:
+        freyja_file = "output/{sample}/{sample}_demixing_result.csv",
+        tmp_freyja = "tmp/{sample}_demixing_result.csv"
+    shell:
+        """
+        mkdir -p {params.tmp_dir}
 
         freyja demix \
             --eps {params.eps} \
             --barcodes {input.barcodes} \
+            --meta {input.curated_linages_} \
             --covcut {params.covcut} \
             {params.confirmedonly} \
             --depthcutoff {params.depthcutoff} \
-            {output.variants} \
-            {output.depth} \
-            --output {output.freyja_file}
+            {input.variants} \
+            {input.depth} \
+            --output {output.freyja_file} > {params.error_msg}
+
+        cp {output.freyja_file} {output.tmp_freyja}
         """
 
 rule sample_freyja_vis:
@@ -127,19 +162,19 @@ rule sample_freyja_vis:
         # Freyja aggregate command expects a directory not the demixing results files themselves
         # adding the demxing results to help multi threading track the order
         freyja_file = "output/{sample}/{sample}_demixing_result.csv"
-    conda:
-        "/home/nbowers/covid_waste_water/frejya/freyja_dev_env.yml"
     params:
         freyja_dir = directory("output/{sample}/"),
         cl_agg_dir = directory("clean_up/single_aggs/{sample}"),
         single_aggregate = "output/{sample}/{sample}_aggregated_result.tsv",
         ext = "_demixing_result.csv",
         minimum_genome_coverage = minimum_genome_coverage_val,
-        agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val
+        agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val,
+        variant_plot_msg = "tmp/{sample}_sample_variant_plot_error.txt",
+        lineage_plot_msg = "tmp/{sample}_sample_lineage_plot_error.txt"
     output:
-        plot = "output/{sample}/{sample}_mix_variant_plot.png",
-        lineage_plot = "output/{sample}/{sample}_mix_linage_plot.png",
-        clean_single_aggregate = "clean_up/single_aggs/{sample}/{sample}_aggregated_result.tsv"
+        plot = "output/{sample}/{sample}_variant_plot.png",
+        lineage_plot = "output/{sample}/{sample}_linage_plot.png",
+        clean_single_aggregate = "clean_up/single_aggs/{sample}/{sample}_aggregated_result.tsv",
     shell:
         """
         freyja aggregate \
@@ -151,14 +186,14 @@ rule sample_freyja_vis:
             {params.single_aggregate} \
             --mincov {params.minimum_genome_coverage} \
             --thresh {params.agg_minimum_lineage_abundance} \
-            --output {output.plot}
+            --output {output.plot} > {params.variant_plot_msg}
 
         freyja plot \
             {params.single_aggregate} \
             --lineages \
             --mincov {params.minimum_genome_coverage} \
             --thresh {params.agg_minimum_lineage_abundance} \
-            --output {output.lineage_plot}
+            --output {output.lineage_plot} > {params.lineage_plot_msg}
         
         # the single aggregate file is redundant to the freyja file. Moving to clean up directory
         mkdir -p {params.cl_agg_dir}
@@ -166,58 +201,73 @@ rule sample_freyja_vis:
         mv {params.single_aggregate} {output.clean_single_aggregate}
         """
 
-rule temp_dir_freyja_results:
-    input:
-        freyja_file = "output/{sample}/{sample}_demixing_result.csv"
-    params:
-        tmp_dir = directory("./tmp/")
-    output:
-        tmp_freyja = "tmp/{sample}_demixing_result.csv"
-    shell:
-        """
-        mkdir -p {params.tmp_dir}
-
-        cp {input.freyja_file} {output.tmp_freyja}
-        """
-rule set_freyja_vis:
+rule set_aggregate_command:
     input:
         # Freyja aggregate command expects a directory not the files themselves
-        # using set to make sure all files are present before this command runs
-        set_freyja_files = set(expand("output/{sample}/{sample}_demixing_result.csv", sample=samples))
+        # Using the tmp message file incase a sample files to stil populate even if some samples fail
+        # Using set to ensure all files try to run demix. Then use any availble demix results.
+        set_tmp_msg_file = set(expand("output/{sample}/{sample}_demixing_result.csv", sample=samples))
     params:
-        #the directory needs to end with "/"
+        # for snakemake the directory needs to end with "/"
         tmp_dir = directory("tmp/"),
         ext = "_demixing_result.csv",
-        minimum_genome_coverage = minimum_genome_coverage_val,
-        agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val
     output:
-        aggregated = "output/multisample_results.csv",
-        summarized_plot = "output/summarized_variants.png",
-        lineage_plot = "output/lineage_variants.png"
+        aggregated = "output/multisample_demix_results.tsv",
     shell:
         """
         freyja aggregate \
             {params.tmp_dir} \
             --ext {params.ext} \
             --output {output.aggregated}
-
+        """
+rule set_freyja_variant_vis:
+    input:
+        set_agg = "output/multisample_demix_results.tsv"
+    params:
+        # for snakemake the directory needs to end with "/"
+        tmp_dir = directory("tmp/"),
+        ext = "_demixing_result.csv",
+        minimum_genome_coverage = minimum_genome_coverage_val,
+        agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val
+    output:
+        summarized_plot = "output/summarized_variants.png",
+    shell:
+        """
         freyja plot \
-            {output.aggregated} \
+            {input.set_agg} \
             --mincov {params.minimum_genome_coverage} \
             --thresh {params.agg_minimum_lineage_abundance} \
             --output {output.summarized_plot}
+        """
+
+rule set_freyja_lineage_vis:
+    input:
+        # Using the tmp message file incase a sample files to stil populate even if some samples fail
+        # Using set to ensure all files try to run demix. Then use any availble demix results.
+        aggregated = "output/multisample_demix_results.tsv"
+    params:
+        # for snakemake the directory needs to end with "/"
+        tmp_dir = directory("tmp/"),
+        ext = "_demixing_result.csv",
+        minimum_genome_coverage = minimum_genome_coverage_val,
+        agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val
+    output:
+        lineage_plot = "output/lineage_variants.png",
+    shell:
+        """
 
         freyja plot \
-            {output.aggregated} \
+            {input.aggregated} \
             --lineages \
             --mincov {params.minimum_genome_coverage} \
             --thresh {params.agg_minimum_lineage_abundance} \
             --output {output.lineage_plot}
         """
+
 rule time_series_plot:
     input:
-        aggregated = "output/multisample_results.csv",
-        metadata_csv = edited_sample_metadata_csv_path
+        aggregated = "output/multisample_demix_results.tsv",
+        metadata_tsv = edited_sample_metadata_csv_path
     params:
         #the directory needs to end with "/"
         tmp_dir = directory("tmp/"),
@@ -230,10 +280,11 @@ rule time_series_plot:
     shell:
         """
         freyja plot {input.aggregated} \
-            --times {input.metadata_csv} \
+            --times {input.metadata_tsv} \
             --interval {params.timeseries_interval} \
             --output {output.multisample_timeseries_plot}
         """
+
 rule multiqc:
     input:
        multiqc_config = os.path.join(workflow_dir, "multiqc_config.yaml"),
@@ -256,6 +307,7 @@ rule multiqc:
 
         mv {params.tmp_multiqc_dir} {output.cl_multiqc_dir}
         """
+
 rule write_out_versions:
     output: version_log = "output/version_log.txt"
     params:
@@ -265,14 +317,20 @@ rule write_out_versions:
         """
         echo "The results may vary depending on the version of Freyja, \
         its dependences and the barcode file used. The barcode file is a \
-        .CSV file that is used in lineage-determination defined by the UShER \
+        .tsv file that is used in lineage-determination defined by the UShER \
         global phylogenetic tree. We update the barcodes every two weeks.\n \
         Below are the versions of the tools used" >> {output.version_log}
         freyja --version >> {output.version_log}
+        
         echo "Barcode version:" >> {output.version_log}
-        usher --version >> {output.version_log}
-        ivar version >> {output.version_log}
+        
+        echo usher --version >> {output.version_log}
+        
+        echo ivar version >> {output.version_log}
+        
         echo "primer type: {params.primer_tp}" >> {output.version_log}
+        
         echo "primer version: {params.primer_v}" >> {output.version_log}
-        samtools version >> {output.version_log}
+        
+        echo samtools version >> {output.version_log}
         """

@@ -39,6 +39,7 @@ rule_all_list = [
     expand('output/{sample}/fastqc_results/{sample}.ivar_fastqc.html', sample = samples)
     ]
 
+
 ### Add zpd samples to rule all list ###
 if len(zpd_samples) >= 1:
     rule_all_list.append(expand('output/{zpd_sample}/assembly/{zpd_sample}.ivar.bam', zpd_sample = zpd_samples))

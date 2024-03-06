@@ -48,7 +48,7 @@ if len(zpd_samples) >= 2:
     rule_all_list.append(expand("output/{zpd_sample}/assembly/{zpd_sample}.ivar.bam", zpd_sample = zpd_samples))
     rule_all_list.append(expand("output/{zpd_sample}/fastqc_results/{zpd_sample}_R{zpd_read_num}_fastqc.html", zpd_sample = zpd_samples, zpd_read_num = zpd_read_nums))
 else:
-    msg = "no zpd single end samples"
+    msg = "no zpd paired end samples"
     sys.stderr.write(msg)
 
 ### Add unzpd samples to rule all list ###
@@ -56,7 +56,7 @@ if len(unzpd_samples) >= 2:
     rule_all_list.append(expand("output/{unzpd_sample}/assembly/{unzpd_sample}.ivar.bam", unzpd_sample = unzpd_samples))
     rule_all_list.append(expand("output/{unzpd_sample}/fastqc_results/{unzpd_sample}_R{unzpd_read_num}_fastqc.html", unzpd_sample = unzpd_samples, unzpd_read_num = unzpd_read_nums))
 else:
-    msg = "no unzpd single end samples"
+    msg = "no unzpd paired end samples"
     sys.stderr.write(msg)
 
 rule all:
