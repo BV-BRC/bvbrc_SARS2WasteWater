@@ -272,6 +272,10 @@ def run_snakefiles(input_dict, input_dir, output_dir,  config):
         SNAKEFILE = os.path.join(SNAKEFILE_DIR, "freyja_snakefile")
         cmd = common_params + ["--snakefile",  SNAKEFILE]
         subprocess.run(cmd)
+        print('starting stats/wrap up command')
+        SNAKEFILE = os.path.join(SNAKEFILE_DIR, "stats_snakefile")
+        cmd = common_params + ["--snakefile",  SNAKEFILE]
+        subprocess.run(cmd)
     # final file check
     freyja_check = post_processing_check(all_sample_ids, output_dir)
     if freyja_check == True:
