@@ -36,7 +36,8 @@ primer_ver = config["params"]["primer_version"]
 
 # Define base rule all
 rule_all_list = [
-    expand('output/{sample}/fastqc_results/{sample}.ivar_fastqc.html', sample = samples)
+    expand('output/{sample}/fastqc_results/{sample}.ivar_fastqc.html', sample = samples),
+    expand("output/{sample}/assembly/{sample}_flagstat.txt", sample = samples)
     ]
 
 
@@ -169,3 +170,13 @@ rule fastqc_ivar:
         /opt/patric-common/runtime/bin/fastqc {input.ivar_sorted_bam} \
         -o {params.fastqc_dir} -q
         '''
+
+rule samtools_flagstat:
+    input:
+        ivar_sorted_bam = "output/{sample}/assembly/{sample}.sorted.bam"
+    output:
+        flagstat_txt = "output/{sample}/assembly/{sample}_flagstat.txt"
+    shell:
+        """
+        samtools flagstat {input.ivar_sorted_bam} > {output.flagstat_txt}
+        """

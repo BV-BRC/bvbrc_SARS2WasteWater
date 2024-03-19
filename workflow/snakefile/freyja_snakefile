@@ -64,8 +64,6 @@ rule_all_list = [
         expand("output/{sample}/{sample}_demixing_result.csv", sample=samples),
         expand("output/{sample}/{sample}_variant_plot.png", sample=samples),
         expand("output/summarized_variants.png", sample=samples),
-        expand("output/version_log.txt"),
-        expand("output/multiqc_report.html")
     ]
 
 # If metadata.tsv is passed then make the time series plots
@@ -173,7 +171,7 @@ rule sample_freyja_vis:
         lineage_plot_msg = "tmp/{sample}_sample_lineage_plot_error.txt"
     output:
         plot = "output/{sample}/{sample}_variant_plot.png",
-        lineage_plot = "output/{sample}/{sample}_linage_plot.png",
+        lineage_plot = "output/{sample}/{sample}_lineage_plot.png",
         clean_single_aggregate = "clean_up/single_aggs/{sample}/{sample}_aggregated_result.tsv",
     shell:
         """
@@ -283,54 +281,4 @@ rule time_series_plot:
             --times {input.metadata_tsv} \
             --interval {params.timeseries_interval} \
             --output {output.multisample_timeseries_plot}
-        """
-
-rule multiqc:
-    input:
-       multiqc_config = os.path.join(workflow_dir, "multiqc_config.yaml"),
-    params:
-        landing_dir = directory('output'),
-        tmp_multiqc_dir = directory('output/multiqc_data')
-    output:
-        'output/multiqc_report.html',
-        cl_multiqc_dir = directory("clean_up/multiqc_data")
-    shell:
-        """
-        multiqc --version
-
-        multiqc output/. \
-            -c {input.multiqc_config} \
-            -o {params.landing_dir} --fullnames \
-            -f
-        
-        mkdir -p {output.cl_multiqc_dir}
-
-        mv {params.tmp_multiqc_dir} {output.cl_multiqc_dir}
-        """
-
-rule write_out_versions:
-    output: version_log = "output/version_log.txt"
-    params:
-        primer_tp = primer_type,
-        primer_v = primer_version
-    shell:
-        """
-        echo "The results may vary depending on the version of Freyja, \
-        its dependences and the barcode file used. The barcode file is a \
-        .tsv file that is used in lineage-determination defined by the UShER \
-        global phylogenetic tree. We update the barcodes every two weeks.\n \
-        Below are the versions of the tools used" >> {output.version_log}
-        freyja --version >> {output.version_log}
-        
-        echo "Barcode version:" >> {output.version_log}
-        
-        echo usher --version >> {output.version_log}
-        
-        echo ivar version >> {output.version_log}
-        
-        echo "primer type: {params.primer_tp}" >> {output.version_log}
-        
-        echo "primer version: {params.primer_v}" >> {output.version_log}
-        
-        echo samtools version >> {output.version_log}
         """
