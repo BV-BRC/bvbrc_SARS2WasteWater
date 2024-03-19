@@ -2,11 +2,6 @@
 ### Ask bob for help with:
 ### change to config write out for sample level metadata (primers and dates)
 ### update barcodes path to be a variable?
-### Nicole changes:
-### change job_failed_exists and  save_output_files so it uploads everything
-### change jobs_failed.txt to 'job_summary.txt' and only use job_failed.txt if all samples fail
-### add samtools flag stats
-### add script to make job summary table (that made the 100 samples table)
 ###
 
 #
@@ -41,7 +36,8 @@ sub run_app
 sub job_failed_exists {
     my($app, $output) = @_;
     my $job_failed_txt = shift;
-
+    # save files to workspace even if the job failed exisits
+    save_output_files($app, $output);
     if (-e $job_failed_txt) {
         print "File '$job_failed_txt' exists. Uploading to workspace \n";
          my @cmd = ("p3-cp", "ws:" . $app->result_folder);
@@ -54,11 +50,10 @@ sub job_failed_exists {
         return 1;  # File exists
     } else {
         print "File '$job_failed_txt' does not exist. Uploading all results in the output directory \n";
-        save_output_files($app, $output);
+        # save_output_files($app, $output);
         return 0;  # File does not exist
     }
 }
-
 
 sub process_read_input
 {
@@ -186,7 +181,7 @@ sub process_read_input
     # check if Job Failed txt file exisits
     my $filename = "JobFailed.txt";
     job_failed_exists($filename, $app, $output);
-    save_output_files($app, $output);
+    # save_output_files($app, $output);
 }
 
 sub preflight

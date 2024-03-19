@@ -16,7 +16,7 @@ import subprocess
 def check_for_error_msgs(raw_msg, file, out_msg):
     with open(file) as f:
         if raw_msg in line:
-            write_to_job_failed_file(out_msg)
+            write_to_warning_file d(out_msg)
         else:
             pass
 
@@ -102,7 +102,7 @@ def post_processing_check(all_sample_ids, output_dir):
                 If you have any questions about this job please go to the jobs page \n \
                 select this job. Then on the green action bar, select 'report issue'  \n \
                 A team member will assist you with the analysis. \n"
-        write_to_job_failed_file(msg)
+        write_to_warning_file(msg)
         # check for errors then add them to Job Failed text file 
         for sample in incomplete:
             ### Check demix output ###
@@ -131,8 +131,6 @@ def post_processing_check(all_sample_ids, output_dir):
             out_msg = "The Freyja plot command with flag '--lineage' gave this error for {sample}: \n \
                 'Exception: Too many lineages to show.'"
             check_for_error_msgs(raw_msg, sample_plot_error_lineage_file, out_msg)
-
-        sys.exit(1)
     else:
         msg = f"Freyja results produced for the following samples: {complete}. \n"
         sys.stderr.write(msg)
@@ -197,13 +195,13 @@ def preprocessing_check(output_dir, input_dict):
             msg = f"WARNING: Errors in FASTQ proccessing \n \
             \n CHECK SEQUENCING TYPE: This service only accepts **AMPLICON** based sequencing. \n \
             Please check the sequencing type for the following samples: **{wrong_sequence_type}** \n \n"
-            write_to_job_failed_file(msg)
+            write_to_warning_file(msg)
             msg = f" WARNING: CHECK SAMPLE(S) \n \
                 Primer trimming and variant calling is complete for the following samples: {complete}. \n \
                 CHECK SAMPLE: Primer trimming and variant calling is INCOMPLETE for the following samples: **{incomplete}** \n \
                 Please review the sample(s) by uploading the FASTQ file(s) to the FastqUtils service.\n \
                 Ending job. Not proceeding with the rest of the analysis due to errors in FASTQ proccessing \n"
-            write_to_job_failed_file(msg)
+            write_to_warning_file(msg)
     ## if an iVAR trimmed bam file does not exist but statstics.tsv exisits 
     elif len(incomplete) != 0:
         msg = f"WARNING: CHECK SAMPLE(S) \n \
@@ -211,8 +209,7 @@ def preprocessing_check(output_dir, input_dict):
                 CHECK SAMPLE: Primer trimming and variant calling is INCOMPLETE for the following samples: **{incomplete}** \n \
                 Please review the sample(s) by uploading the FASTQ file(s) to the FastqUtils service.\n \
                 Ending job. Not proceeding with the rest of the analysis due to errors in FASTQ proccessing \n"
-        write_to_job_failed_file(msg)
-        sys.exit(1)
+        write_to_warning_file(msg)
     ## if the statistics file is empty it is probably the wrong sequencing type write inormative message and stop the analysis 
     elif len(wrong_sequence_type) !=0:
         msg = f"WARNING: Errors in FASTQ proccessing \n \
@@ -220,8 +217,7 @@ def preprocessing_check(output_dir, input_dict):
                 \n This service only accepts amplicon based sequencing. \n \
                 Please check the sequencing type for the following samples: **{wrong_sequence_type}** \n \
                 Ending job. Not proceeding with the rest of the analysis due to errors in FASTQ proccessing"
-        write_to_job_failed_file(msg)
-        sys.exit(1)
+        write_to_warning_file(msg)
     else:
         msg = "preprocessing complete \n"
         sys.stderr.write(msg)
