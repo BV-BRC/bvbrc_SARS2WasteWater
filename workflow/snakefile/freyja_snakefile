@@ -115,12 +115,14 @@ if os.path.exists("sample_time_metadata.csv"):
     # add time series plot to rule all
     rule_all_list.append("output/multisample_timeseries.png")
     rule_all_list.append("output/multisample_timeseries_lineages.png")
+    # if timeseries plot interval is not given use
     if config["params"]["timeseries_plot_interval"] == "0":
         interval_flag = ""
         timeseries_interval_val = ""
         print('making time series plots with default time interval of months')
     else:
         timeseries_interval_val = config["params"]["timeseries_plot_interval"]
+        interval_flag = "--interval"
         print("making time series interval plots with given interval of {}".format(timeseries_interval_val))
 else:
     time_metadata_csv = ""
