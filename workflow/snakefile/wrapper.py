@@ -4,9 +4,10 @@ import json
 import os
 import pandas as pd
 import re
-import sys
 import shutil
 import subprocess
+import sys
+
 
 #
 # python wrapper for the SARS2Waterwater analysis pipeline
@@ -14,11 +15,14 @@ import subprocess
 #
 
 def check_for_error_msgs(raw_msg, file, out_msg):
-    with open(file) as f:
-        if raw_msg in line:
-            write_to_warning_file(out_msg)
-        else:
-            pass
+    with open(file, 'r') as fp:
+        lines = fp.readlines()
+        for line in lines:
+            # check if string present on a current line
+            if line.find(raw_msg) != -1:
+                write_to_warning_file(out_msg)
+            else:
+                pass
 
 def check_input_fastqs(input_dir, filename):
     input_path = f"{input_dir}/{filename}"
@@ -27,7 +31,6 @@ def check_input_fastqs(input_dir, filename):
     else:
         msg = f"Error FASTQ input path: {input_path} does not exisit'. \n check on {input_path} \n"
         sys.stderr.write(msg)
-        sys.exit(1)
         pass
 
 
@@ -105,11 +108,12 @@ def post_processing_check(all_sample_ids, output_dir):
         # check for errors then add them to Job Failed text file 
         for sample in incomplete:
             ### Check demix output ###
-            raw_msg = "demix: Solver error encountered, most likely due to insufficient sequencing depth."
+            raw_msg = "demix: Solver error encountered, mostlikely due to insufficient sequencing depth."
             out_msg = f"The Freyja demix command gave this error for {sample}: \n 'demix: Solver error encountered, \
                 most likely due to insufficient sequencing depth.'"
             demix_error_file = f"tmp/{sample}_demix_error.txt"
-            check_for_error_msgs(raw_msg, demix_error_file, out_msg)
+            if os.path.exists(demix_error_file):
+                check_for_error_msgs(raw_msg, demix_error_file, out_msg)
             ### Check sample plots ##
             # variant plot
             raw_msg = "ERROR: No samples matching coverage requirements, so no plot will be generated."
@@ -117,19 +121,23 @@ def post_processing_check(all_sample_ids, output_dir):
                 coverage requirements, so no plot will be generated.' \
                 The default coverage requirement is 60% \n"
             sample_plot_error_variant_file = f"tmp/{sample}_sample_variant_plot_error.txt"
-            check_for_error_msgs(raw_msg, sample_plot_error_variant_file, out_msg)
+            if os.path.exists(sample_plot_error_variant_file):
+                check_for_error_msgs(raw_msg, sample_plot_error_variant_file, out_msg)
             # linage plot
             raw_msg = "ERROR: No samples matching coverage requirements, so no plot will be generated."
             out_msg = "The Freyja plot command with flag '--lineage' gave this error for {sample}: \n 'ERROR: No samples matching \
                 coverage requirements, so no plot will be generated.' \
                 The default coverage requirement is 60% \n"
             sample_plot_error_lineage_file = f"tmp/{sample}_sample_lineage_plot_error.txt"
+            if os.path.exists(sample_plot_error_lineage_file):
+                check_for_error_msgs(raw_msg, sample_plot_error_variant_file, out_msg)
             # lineage plot coverage depth error
             # lineage plot too many lineages error
             raw_msg = "Exception: Too many lineages to show. Use --config to group."
             out_msg = "The Freyja plot command with flag '--lineage' gave this error for {sample}: \n \
                 'Exception: Too many lineages to show.'"
-            check_for_error_msgs(raw_msg, sample_plot_error_lineage_file, out_msg)
+            if os.path.exists(sample_plot_error_lineage_file):
+                check_for_error_msgs(raw_msg, sample_plot_error_lineage_file, out_msg)
     else:
         msg = f"Freyja results produced for the following samples: {complete}. \n"
         sys.stderr.write(msg)
@@ -241,7 +249,8 @@ def run_snakefiles(input_dict, input_dir, output_dir,  config):
         "--use-singularity",
         "--verbose",
         "--printshellcmds",
-        "--keep-going"
+        "--keep-going",
+        "--dry-run"
         ]
 
     if config["cores"] == 1:
@@ -365,11 +374,11 @@ def set_up_sample_dictionary(input_dir, input_dict, output_dir, cores):
 
 
 def write_to_warning_file(message):
-    with open("warning.txt", "a") as warning_file:
+    with open("output/warning.txt", "a") as warning_file:
         warning_file.write(message + "\n")
 
 def write_to_job_failed_file(message):
-    with open("JobFailed.txt", "a") as job_failed_file:
+    with open("output/JobFailed.txt", "a") as job_failed_file:
         job_failed_file.write(message + "\n")
 
 
@@ -377,7 +386,7 @@ def write_to_job_failed_file(message):
 # It takes a single argument which is the pathname of a config.json file
 # This contains the app parameters in the params slot.
 def main(argv):
-    config_file = argv[0]
+    config_file = argv[1]
     print("Wrapper command recieved \n")
     try:
         fh = open(config_file)
@@ -404,6 +413,5 @@ def main(argv):
     # run the snakefiles
     run_snakefiles(input_dict, input_dir, output_dir, config)
 
-
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main(sys.argv)
