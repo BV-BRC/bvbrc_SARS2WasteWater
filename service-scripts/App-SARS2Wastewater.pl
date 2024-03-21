@@ -31,27 +31,27 @@ sub run_app
 	process_read_input($app, $params);
 }
 
-sub job_failed_exists {
-    my($app, $output) = @_;
-    my $job_failed_txt = shift;
-    # save files to workspace even if the job failed exisits
-    save_output_files($app, $output);
-    if (-e $job_failed_txt) {
-        print "File '$job_failed_txt' exists. Uploading to workspace \n";
-         my @cmd = ("p3-cp", "ws:" . $app->result_folder);
-	    print STDERR "saving files to workspace... @cmd\n";
-	    my $ok = IPC::Run::run(\@cmd);
-	    if (!$ok)
-	    {
-		warn "Error $? copying output with @cmd\n";
-	    }
-        return 1;  # File exists
-    } else {
-        print "File '$job_failed_txt' does not exist. Uploading all results in the output directory \n";
-        # save_output_files($app, $output);
-        return 0;  # File does not exist
-    }
-}
+# sub job_failed_exists {
+#     my($app, $output) = @_;
+#     my $job_failed_txt = shift;
+#     # save files to workspace even if the job failed exisits
+#     save_output_files($app, $output);
+#     if (-e $job_failed_txt) {
+#         print "File '$job_failed_txt' exists. Uploading to workspace \n";
+#          my @cmd = ("p3-cp", "ws:" . $app->result_folder);
+# 	    print STDERR "saving files to workspace... @cmd\n";
+# 	    my $ok = IPC::Run::run(\@cmd);
+# 	    if (!$ok)
+# 	    {
+# 		warn "Error $? copying output with @cmd\n";
+# 	    }
+#         return 1;  # File exists
+#     } else {
+#         print "File '$job_failed_txt' does not exist. Uploading all results in the output directory \n";
+#         # save_output_files($app, $output);
+#         return 0;  # File does not exist
+#     }
+# }
 
 sub process_read_input
 {
@@ -184,8 +184,8 @@ sub process_read_input
     }
     # check if Job Failed txt file exisits
     my $filename = "JobFailed.txt";
-    job_failed_exists($filename, $app, $output);
-    # save_output_files($app, $output);
+    # job_failed_exists($filename, $app, $output);
+    save_output_files($app, $output);
 }
 
 sub preflight
@@ -226,6 +226,7 @@ sub save_output_files
         fasta => "contigs",
         html => 'html',
         out => 'txt',
+        txt => 'txt',
         png => 'png',
         tsv => 'tsv',
         txt => 'txt',);
