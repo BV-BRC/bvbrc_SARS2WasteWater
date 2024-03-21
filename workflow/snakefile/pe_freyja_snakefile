@@ -1,3 +1,27 @@
+import pandas as pd
+
+# Function to retrieve primers based on sample_id
+def get_primers(wildcard_sample_id, paired_end_df):
+    for idx, row in paired_end_df.iterrows():
+        if row["sample_id"] == wildcard_sample_id:
+            return(row["primers"])
+
+# Function to retrieve primer version based on sample_id
+def get_primer_version(wildcard_sample_id, paired_end_df):
+    for idx, row in paired_end_df.iterrows():
+        if row["sample_id"] == wildcard_sample_id:
+            return row["primer_version"]
+
+## Pair the sample ids with the primers and primer versions ##
+# Load the JSON data
+with open('config.json') as f:
+    data = json.load(f)
+
+# Extract data from paired_end_libs
+paired_end_data = [(entry['sample_id'], entry['primer_version'], entry['primers']) for entry in data['params']['paired_end_libs']]
+# Create DataFrame for paired_end_libs to be used for rules unzpd_assembly and zpd_assembly:
+paired_end_df = pd.DataFrame(paired_end_data, columns=['sample_id', 'primer_version', 'primers'])
+
 ### Define wildcards ###
 zpd_samples = glob_wildcards("staging/pe_reads/{sample}_R{read_num}.fastq.gz").sample
 zpd_read_nums = glob_wildcards("staging/pe_reads/{sample}_R{read_num}.fastq.gz").read_num
@@ -71,8 +95,9 @@ rule zpd_assembly:
     params:
         output_base = "{zpd_sample}",
         output_dir = "output/{zpd_sample}/assembly",
-        primer_type = primer,
-        primer_version = primer_ver
+        # Use wildcards to dynamically pair primers and primer version with sample_id
+        primer_type = lambda wildcards: get_primers(wildcards.zpd_sample, paired_end_df),
+        primer_version = lambda wildcards: get_primer_version(wildcards.zpd_sample, paired_end_df)
     output:
         ivar_bam = "output/{zpd_sample}/assembly/{zpd_sample}.ivar.bam",
         ivar_sorted_bam = "output/{zpd_sample}/assembly/{zpd_sample}.sorted.bam"
@@ -97,8 +122,9 @@ rule unzpd_assembly:
     params:
         output_base = "{unzpd_sample}",
         output_dir = "output/{unzpd_sample}/assembly",
-        primer_type = primer,
-        primer_version = primer_ver
+        # Use wildcards to dynamically pair primers and primer version with sample_id
+        primer_type = lambda wildcards: get_primers(wildcards.unzpd_sample, paired_end_df),
+        primer_version = lambda wildcards: get_primer_version(wildcards.unzpd_sample, paired_end_df)
     output:
         ivar_bam = "output/{unzpd_sample}/assembly/{unzpd_sample}.ivar.bam",
         ivar_sorted_bam = "output/{unzpd_sample}/assembly/{unzpd_sample}.sorted.bam"

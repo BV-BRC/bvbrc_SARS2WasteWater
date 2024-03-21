@@ -1,6 +1,22 @@
 #### before pushing to alpha fix sample level metadata (primers and dates) ###
 #### before pushing production to uncomment multiqc for production ###
 
+import pandas as pd
+import json
+
+def merge_lists_of_ordered_dicts(list1, list2):
+    merged_list = []
+    for dicts1, dicts2 in zip(list1, list2):
+        merged_dict = OrderedDict()
+        keys = set(dicts1.keys()) | set(dicts2.keys())
+        for key in keys:
+            if key in dicts1:
+                merged_dict[key] = dicts1[key]
+            if key in dicts2:
+                merged_dict[key] = dicts2[key]
+        merged_list.append(merged_dict)
+    return merged_list
+
 msg = "snakefile command recieved - FREYJA AND POST PROCESSING \n"
 sys.stderr.write(msg)
 
@@ -53,9 +69,36 @@ else:
 minimum_genome_coverage_val = config["params"]["minimum_genome_coverage"]
 ### freyja plot variables ###
 agg_minimum_lineage_abundance_val = config["params"]["agg_minimum_lineage_abundance"]
-### version long variables ###
-primer_type = config["params"]["primers"]
-primer_version = config["params"]["primer_version"]
+
+
+# Load the JSON data
+with open('config.json') as f:
+    data = json.load(f)
+
+# Extract data from single_end_libs
+single_end_data = [(entry['sample_id'], entry['sample_level_date']) for entry in data['params']['single_end_libs']]
+
+# Extract data from paired_end_libs
+paired_end_data = [(entry['sample_id'], entry['sample_level_date']) for entry in data['params']['paired_end_libs']]
+
+# Create DataFrame for single_end_libs
+single_end_df = pd.DataFrame(single_end_data, columns=['sample_id', 'sample_level_date'])
+
+# Create DataFrame for paired_end_libs
+paired_end_df = pd.DataFrame(paired_end_data, columns=['sample_id', 'sample_level_date'])
+
+# Concatenate single_end_df and paired_end_df
+merged_df = pd.concat([single_end_df, paired_end_df], ignore_index=True)
+## prep date .CSV for Freyja plotting ##
+# Pull outonly the columns Freyja is expecting
+dates_df = merged_df[['sample_id', 'sample_level_date']]
+# Rename columns for the column names Freyja is expecting 
+dates_df.rename(columns={"sample_id":"Sample", "sample_level_date":"sample_collection_datetime"}, inplace = True)
+# # Add _freyja_variants.tsv to sample id as Freyja is expecting 
+variant_file_ext = '_freyja_variants.tsv'
+dates_df['Sample'] = dates_df['Sample'].astype(str) + variant_file_ext
+# Print date and sample information to csv for Freyja plotting command
+dates_df.to_csv("sample_time_metadata.csv", index=False)
 
 
 # Define base rule all
@@ -66,19 +109,23 @@ rule_all_list = [
         expand("output/summarized_variants.png", sample=samples),
     ]
 
-# If metadata.tsv is passed then make the time series plots
-if os.path.exists(config["staging_sample_metadata_path"]):
-    edited_sample_metadata_csv_path = config["staging_sample_metadata_path"]
-    if config["params"]["timeseries_plot_interval"] != "0":
-        rule_all_list.append("output/multisample_timeseries.png")
-        timeseries_interval_val = config["params"]["timeseries_plot_interval"]
-    else:
+# If dates are passed, check if metadata.csv is exists then make the time series plots
+if os.path.exists("sample_time_metadata.csv"):
+    time_metadata_csv = "sample_time_metadata.csv"
+    # add time series plot to rule all
+    rule_all_list.append("output/multisample_timeseries.png")
+    rule_all_list.append("output/multisample_timeseries_lineages.png")
+    if config["params"]["timeseries_plot_interval"] == "0":
+        interval_flag = ""
         timeseries_interval_val = ""
-    print('making time series plots')
+        print('making time series plots with default time interval of months')
+    else:
+        timeseries_interval_val = config["params"]["timeseries_plot_interval"]
+        print("making time series interval plots with given interval of {}".format(timeseries_interval_val))
 else:
-    edited_sample_metadata_csv_path = ""
+    time_metadata_csv = ""
     timeseries_interval_val = ""
-    msg = f"Sample metadata tsv file unavailable. Not producing time series plots"
+    msg = f"Sample date data is unavailable. Not producing time series plots"
     sys.stderr.write(msg)
     pass
 
@@ -91,6 +138,7 @@ else:
     msg = f"Only one sample. Not producing multisample outputs"
     sys.stderr.write(msg)
     pass
+
 
 rule all:
     input:
@@ -265,20 +313,44 @@ rule set_freyja_lineage_vis:
 rule time_series_plot:
     input:
         aggregated = "output/multisample_demix_results.tsv",
-        metadata_tsv = edited_sample_metadata_csv_path
     params:
         #the directory needs to end with "/"
         tmp_dir = directory("tmp/"),
         ext = "_demixing_result.csv",
         minimum_genome_coverage = minimum_genome_coverage_val,
         agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val,
-        timeseries_interval = timeseries_interval_val
+        interval_flag_ = interval_flag,
+        timeseries_interval = timeseries_interval_val,
+        metadata_csv = time_metadata_csv
     output:
         multisample_timeseries_plot = "output/multisample_timeseries.png"
     shell:
         """
         freyja plot {input.aggregated} \
-            --times {input.metadata_tsv} \
-            --interval {params.timeseries_interval} \
+            --times {params.metadata_csv} \
+            {params.interval_flag_} {params.timeseries_interval} \
+            --output {output.multisample_timeseries_plot}
+        """
+
+rule lineages_time_series_plot:
+    input:
+        aggregated = "output/multisample_demix_results.tsv",
+    params:
+        #the directory needs to end with "/"
+        tmp_dir = directory("tmp/"),
+        ext = "_demixing_result.csv",
+        minimum_genome_coverage = minimum_genome_coverage_val,
+        agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val,
+        interval_flag_ = interval_flag,
+        timeseries_interval = timeseries_interval_val,
+        metadata_csv = time_metadata_csv
+    output:
+        multisample_timeseries_plot = "output/multisample_timeseries_lineages.png"
+    shell:
+        """
+        freyja plot {input.aggregated} \
+            --lineages \
+            --times {params.metadata_csv} \
+            {params.interval_flag_} {params.timeseries_interval} \
             --output {output.multisample_timeseries_plot}
         """

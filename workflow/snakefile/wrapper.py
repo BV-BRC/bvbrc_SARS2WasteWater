@@ -16,7 +16,7 @@ import subprocess
 def check_for_error_msgs(raw_msg, file, out_msg):
     with open(file) as f:
         if raw_msg in line:
-            write_to_warning_file d(out_msg)
+            write_to_warning_file(out_msg)
         else:
             pass
 
@@ -94,7 +94,6 @@ def post_processing_check(all_sample_ids, output_dir):
             dict_samples[sample_name] = False
             msg = f"{sample_name}"
             incomplete.append(msg)
-        sample_plot = 
     ## write the complete and incomplete samples to the error report for user to see ##
     if len(incomplete) != 0:
         msg = f"Freyja results produced for the following samples: {complete}. \n \
@@ -178,7 +177,7 @@ def preprocessing_check(output_dir, input_dict):
             if os.path.getsize(stats_path) == 0:
                 wrong_sequence_type.append(sample_name)
             else:
-                msg = f"assembly complete for {sample_name}"
+                msg = f"assembly complete for {sample_name} \n"
                 sys.stderr.write(msg)
         else:
             wrong_sequence_type.append(sample_name)
@@ -189,7 +188,7 @@ def preprocessing_check(output_dir, input_dict):
             dict_samples[sample_name] = False
             incomplete.append(sample_name)
 
-    ### Write out messages and warnings to JobFailed.txt ###
+    ### Write out messages and warnings ###
     # if both wrong sequencing type and empty ivar bam file
     if len(incomplete) != 0 and len(wrong_sequence_type) !=0:
             msg = f"WARNING: Errors in FASTQ proccessing \n \
@@ -219,17 +218,23 @@ def preprocessing_check(output_dir, input_dict):
                 Ending job. Not proceeding with the rest of the analysis due to errors in FASTQ proccessing"
         write_to_warning_file(msg)
     else:
-        msg = "preprocessing complete \n"
+        #all samples complete 
+        msg = "assembly is complete for all samples\n"
+    if len(complete) == 0:
+        msg = f"Assembly did not complete for any samples: {all_sample_ids}.\n Please review your samples"
+        write_to_job_failed_file(msg)
         sys.stderr.write(msg)
-        return True, all_sample_ids
+        sys.exit(1)
+    else:
+        msg = "preprocessing complete \n continuing the analysis\n"
+        sys.stderr.write(msg)
+        return complete
 
 
 def run_snakefiles(input_dict, input_dir, output_dir,  config):
     input_dir = config["input_data_dir"]
-    # SNAKEMAKE_PATH = config["snakemake"]
-    # SNAKEFILE_DIR = f"{config['workflow_dir']}/snakefile/"
-    SNAKEMAKE_PATH = "/opt/patric-common/runtime/artic-ncov2019/bin/snakemake"
-    SNAKEFILE_DIR = "/home/nbowers/bvbrc-dev/dev_container/modules/bvbrc_SARS2WasteWater/workflows/snakefile/"
+    SNAKEMAKE_PATH = config["snakemake"]
+    SNAKEFILE_DIR = f"{config['workflow_dir']}/snakefile/"
     common_params = [
         SNAKEMAKE_PATH,
         "--cores", str(config["cores"]),
@@ -241,39 +246,33 @@ def run_snakefiles(input_dict, input_dir, output_dir,  config):
 
     if config["cores"] == 1:
         common_params.append("--debug")
-        msg = "starting paired end reads\n"
-        sys.stderr.write(msg)
     # process any paired reads
     if os.path.exists(f"{input_dir}/pe_reads"):
+        msg = "starting paired end reads\n"
+        sys.stderr.write(msg)
         SNAKEFILE = os.path.join(SNAKEFILE_DIR, "pe_freyja_snakefile")
         cmd = common_params + ["--snakefile",  SNAKEFILE]
         subprocess.run(cmd)
-        msg = "starting single end reads\n"
-        sys.stderr.write(msg)
     # process any single reads
     if os.path.exists(f"{input_dir}/se_reads"):
         SNAKEFILE = os.path.join(SNAKEFILE_DIR, "se_freyja_snakefile")
+        msg = "starting single end reads\n"
+        sys.stderr.write(msg)
         cmd = common_params + ["--snakefile",  SNAKEFILE]
         subprocess.run(cmd)
     # once the snake files complete, check for the iVar bam files
-    iVar_check = preprocessing_check(output_dir, input_dict)
-    ## check that the iVar files exist ###
-    file_check = iVar_check[0]
-    all_sample_ids = iVar_check[1]
+    complete = preprocessing_check(output_dir, input_dict)
 
-    if  file_check == True:
-        # if all of the iVar bam files exist then the final step will trigger.
-        # paired and single end reads will be processed together by Freyja
-        print('starting freyja command')
-        SNAKEFILE = os.path.join(SNAKEFILE_DIR, "freyja_snakefile")
-        cmd = common_params + ["--snakefile",  SNAKEFILE]
-        subprocess.run(cmd)
-        print('starting stats/wrap up command')
-        SNAKEFILE = os.path.join(SNAKEFILE_DIR, "stats_snakefile")
-        cmd = common_params + ["--snakefile",  SNAKEFILE]
-        subprocess.run(cmd)
-    # final file check
-    freyja_check = post_processing_check(all_sample_ids, output_dir)
+    print('starting freyja command')
+    SNAKEFILE = os.path.join(SNAKEFILE_DIR, "freyja_snakefile")
+    cmd = common_params + ["--snakefile",  SNAKEFILE]
+    subprocess.run(cmd)
+    print('starting stats/wrap up command')
+    SNAKEFILE = os.path.join(SNAKEFILE_DIR, "stats_snakefile")
+    cmd = common_params + ["--snakefile",  SNAKEFILE]
+    subprocess.run(cmd)
+    # final file check for only the samples that passed iVar trimming
+    freyja_check = post_processing_check(complete, output_dir)
     if freyja_check == True:
         msg = "Wastewater Analysis is complete \n"
         sys.stderr.write(msg)
@@ -404,5 +403,7 @@ def main(argv):
     check_sample_metadata_csv(input_info, config_file, input_dir, staging_metadata_file)
     # run the snakefiles
     run_snakefiles(input_dict, input_dir, output_dir, config)
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])

@@ -63,6 +63,30 @@
           "required": false,
           "default": false,
           "type": "bool"
+        },
+        {
+          "id": "primers",
+          "required": 1,
+          "label": "id for the sample",
+          "desc": "Sample Id that will be used for filenames",
+          "default": "blank primer",
+          "type": "string"
+        },
+        {
+          "id": "primer_version",
+          "required": 1,
+          "label": "id for the sample",
+          "desc": "Primer version this corresponds to primers",
+          "default": "blank primer version",
+          "type": "string"
+        },
+        {
+          "id": "sample_level_date",
+          "required": 0,
+          "label": "date for sample",
+          "desc": "Date of sample collection used for time series analysis",
+          "default": "blank primer date",
+          "type": "string"
         }
       ]
     },
@@ -103,6 +127,30 @@
             "nanopore",
             "iontorrent"
           ]
+        },
+        {
+          "id": "primers",
+          "required": 1,
+          "label": "id for the sample",
+          "desc": "Sample Id that will be used for filenames",
+          "default": "blank primer",
+          "type": "string"
+        },
+        {
+          "id": "primer_version",
+          "required": 1,
+          "label": "id for the sample",
+          "desc": "Primer version this corresponds to primers",
+          "default": "blank primer version",
+          "type": "string"
+        },
+        {
+          "id": "sample_level_date",
+          "required": 0,
+          "label": "date for sample",
+          "desc": "Date of sample collection used for time series analysis",
+          "default": "blank primer date",
+          "type": "string"
         }
       ]
     },
@@ -128,6 +176,30 @@
                 "desc": "SRA Sample accession with SRR prefix",
                 "type": "string"
             },
+            {
+              "id": "primers",
+              "required": 1,
+              "label": "id for the sample",
+              "desc": "Sample Id that will be used for filenames",
+              "default": "blank primer",
+              "type": "string"
+            },
+            {
+              "id": "primer_version",
+              "required": 1,
+              "label": "id for the sample",
+              "desc": "Primer version this corresponds to primers",
+              "default": "blank primer version",
+              "type": "string"
+            },
+            {
+              "id": "sample_level_date",
+              "required": 0,
+              "label": "date for sample",
+              "desc": "Date of sample collection used for time series analysis",
+              "default": "blank primer date",
+              "type": "string"
+            }
         ]
     },
     {

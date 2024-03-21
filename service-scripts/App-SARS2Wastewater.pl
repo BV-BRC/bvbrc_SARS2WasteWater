@@ -1,7 +1,5 @@
 ### Before deploying on alpha:
-### Ask bob for help with:
-### change to config write out for sample level metadata (primers and dates)
-### update barcodes path to be a variable?
+### update barcodes and curated_linages paths to be a variable?
 ###
 
 #
@@ -86,7 +84,10 @@ sub process_read_input
 				    my $lib = {
 					read1 => abs_path($pe->{read_path_1}),
 					read2 => abs_path($pe->{read_path_2}),
-					(exists($pe->{sample_id}) ? (sample_id => $pe->{sample_id}) : ())
+					(exists($pe->{sample_id}) ? (sample_id => $pe->{sample_id}) : ()),
+                    (exists($pe->{sample_level_date}) ? (sample_level_date => $pe->{sample_level_date}) : ()),
+                    (exists($pe->{primers}) ? (primers => $pe->{primers}) : ()),
+                    (exists($pe->{primer_version}) ? (primer_version => $pe->{primer_version}) : ())
 					};
 				    push(@{$nparams->{paired_end_libs}}, $lib);
 				},
@@ -94,7 +95,10 @@ sub process_read_input
 				  my($se) = @_;
 				  my $lib = {
 				      read => abs_path($se->{read_path}),
-				      (exists($se->{sample_id}) ? (sample_id => $se->{sample_id}) : ())
+				      (exists($se->{sample_id}) ? (sample_id => $se->{sample_id}) : ()),
+                      (exists($se->{sample_level_date}) ? (sample_level_date => $se->{sample_level_date}) : ()),
+                      (exists($se->{primers}) ? (primers => $se->{primers}) : ()),
+                      (exists($se->{primer_version}) ? (primer_version => $se->{primer_version}) : ())
 				      };
 				  push(@{$nparams->{single_end_libs}}, $lib);
 			      },
@@ -139,7 +143,7 @@ sub process_read_input
     #
 
     my %config_vars;
-    # temp barcode path
+    # temp
     my $barcodes_path = "/vol/bvbrc/production/application-backend/SARS2WasteWater/2024-03-06/usher_barcodes.csv";
     my $curated_linages = "/vol/bvbrc/production/application-backend/SARS2WasteWater/2024-03-06/curated_lineages.json";
     my $wf_dir = "$ENV{KB_TOP}/workflows/$ENV{KB_MODULE_DIR}";
