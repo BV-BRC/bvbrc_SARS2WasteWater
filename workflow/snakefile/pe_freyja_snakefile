@@ -1,0 +1,215 @@
+import pandas as pd
+
+# Function to retrieve primers based on sample_id
+def get_primers(wildcard_sample_id, paired_end_df):
+    for idx, row in paired_end_df.iterrows():
+        if row["sample_id"] == wildcard_sample_id:
+            return(row["primers"])
+
+# Function to retrieve primer version based on sample_id
+def get_primer_version(wildcard_sample_id, paired_end_df):
+    for idx, row in paired_end_df.iterrows():
+        if row["sample_id"] == wildcard_sample_id:
+            return row["primer_version"]
+
+## Pair the sample ids with the primers and primer versions ##
+# Load the JSON data
+with open('config.json') as f:
+    data = json.load(f)
+
+# Extract data from paired_end_libs
+paired_end_data = [(entry['sample_id'], entry['primer_version'], entry['primers']) for entry in data['params']['paired_end_libs']]
+# Create DataFrame for paired_end_libs to be used for rules unzpd_assembly and zpd_assembly:
+paired_end_df = pd.DataFrame(paired_end_data, columns=['sample_id', 'primer_version', 'primers'])
+
+### Define wildcards ###
+zpd_samples = glob_wildcards("staging/pe_reads/{sample}_R{read_num}.fastq.gz").sample
+zpd_read_nums = glob_wildcards("staging/pe_reads/{sample}_R{read_num}.fastq.gz").read_num
+
+unzpd_samples = glob_wildcards("staging/pe_reads/{sample}_R{read_num}.fastq").sample
+unzpd_read_nums = glob_wildcards("staging/pe_reads/{sample}_R{read_num}.fastq").read_num
+samples = zpd_samples + unzpd_samples
+read_nums = zpd_read_nums + unzpd_read_nums
+
+### Define functions for global handelers: Onstart, onsuccess and onerror ###
+# Define the onstart handler
+def onstart(samples):
+    print(f"Starting workflow for {wildcards}")
+# Define the onsuccess handler
+def onsuccess(samples):
+    print(f"Workflow completed successfully for {wildcards}")
+
+# Define the onerror handler
+def onerror(wildcards, input, output, error):
+    msg = f"Error occurred for {wildcards} \n \
+    Input: {input} \n \
+    Output: {output} \n \
+    Error: {error}"
+    with open("JobFailed.txt", "w") as failed_samples:
+        print(msg)
+    pass
+
+#### Define global handlers ####
+onstart: onstart
+onsuccess: onsuccess
+onerror: onerror
+
+### Get variables from config ###
+configfile: "config.json"
+primer = config["params"]["primers"]
+primer_ver = config["params"]["primer_version"]
+
+msg = "snakefile command recieved - FREYJA PAIRED END FASTQ PROCESSING \n"
+sys.stderr.write(msg)
+
+# Define base rule all
+rule_all_list = [
+    expand("output/{sample}/fastqc_results/{sample}.ivar_fastqc.html", sample = samples),
+    expand("output/{sample}/assembly/{sample}_flagstat.txt", sample = samples)
+    ]
+
+### Add zpd samples to rule all list ###
+if len(zpd_samples) >= 2:
+    rule_all_list.append(expand("output/{zpd_sample}/assembly/{zpd_sample}.ivar.bam", zpd_sample = zpd_samples))
+    rule_all_list.append(expand("output/{zpd_sample}/fastqc_results/{zpd_sample}_R{zpd_read_num}_fastqc.html", zpd_sample = zpd_samples, zpd_read_num = zpd_read_nums))
+else:
+    msg = "no zpd paired end samples"
+    sys.stderr.write(msg)
+
+### Add unzpd samples to rule all list ###
+if len(unzpd_samples) >= 2:
+    rule_all_list.append(expand("output/{unzpd_sample}/assembly/{unzpd_sample}.ivar.bam", unzpd_sample = unzpd_samples))
+    rule_all_list.append(expand("output/{unzpd_sample}/fastqc_results/{unzpd_sample}_R{unzpd_read_num}_fastqc.html", unzpd_sample = unzpd_samples, unzpd_read_num = unzpd_read_nums))
+else:
+    msg = "no unzpd paired end samples"
+    sys.stderr.write(msg)
+
+rule all:
+    input:
+        rule_all_list
+
+rule zpd_assembly:
+    input:
+        read1 = "staging/pe_reads/{zpd_sample}_R1.fastq.gz",
+        read2 = "staging/pe_reads/{zpd_sample}_R2.fastq.gz",
+    params:
+        output_base = "{zpd_sample}",
+        output_dir = "output/{zpd_sample}/assembly",
+        # Use wildcards to dynamically pair primers and primer version with sample_id
+        primer_type = lambda wildcards: get_primers(wildcards.zpd_sample, paired_end_df),
+        primer_version = lambda wildcards: get_primer_version(wildcards.zpd_sample, paired_end_df)
+    output:
+        ivar_bam = "output/{zpd_sample}/assembly/{zpd_sample}.ivar.bam",
+        ivar_sorted_bam = "output/{zpd_sample}/assembly/{zpd_sample}.sorted.bam"
+    shell:
+        """
+        mkdir -p {params.output_dir}
+
+        sars2-onecodex -k -j 12 -D 3 -d 8000 \
+            --primer-version {params.primer_version} \
+            --primers {params.primer_type} \
+            -n {wildcards.zpd_sample} \
+            -1 {input.read1} \
+            -2 {input.read2} \
+            {params.output_base} \
+            {params.output_dir}
+        """
+
+rule unzpd_assembly:
+    input:
+        read1 = "staging/pe_reads/{unzpd_sample}_R1.fastq",
+        read2 = "staging/pe_reads/{unzpd_sample}_R2.fastq",
+    params:
+        output_base = "{unzpd_sample}",
+        output_dir = "output/{unzpd_sample}/assembly",
+        # Use wildcards to dynamically pair primers and primer version with sample_id
+        primer_type = lambda wildcards: get_primers(wildcards.unzpd_sample, paired_end_df),
+        primer_version = lambda wildcards: get_primer_version(wildcards.unzpd_sample, paired_end_df)
+    output:
+        ivar_bam = "output/{unzpd_sample}/assembly/{unzpd_sample}.ivar.bam",
+        ivar_sorted_bam = "output/{unzpd_sample}/assembly/{unzpd_sample}.sorted.bam"
+    shell:
+        """
+        mkdir -p {params.output_dir}
+
+        sars2-onecodex -k -j 12 -D 3 -d 8000 \
+            --primer-version {params.primer_version} \
+            --primers {params.primer_type} \
+            -n {wildcards.unzpd_sample} \
+            -1 {input.read1} \
+            -2 {input.read2} \
+            {params.output_base} \
+            {params.output_dir}
+        """
+
+rule fastqc_zpd_reads:
+    input:
+        raw_read = "staging/pe_reads/{zpd_sample}_R{unzpd_read_num}.fastq.gz",
+    params:
+        fastqc_dir = directory("output/{zpd_sample}/fastqc_results"),
+        clean_up = directory("clean_up"),
+    output:
+        fastqc_html = "output/{zpd_sample}/fastqc_results/{zpd_sample}_R{unzpd_read_num}_fastqc.html",
+    shell:
+        """
+        mkdir -p {params.fastqc_dir}
+        mkdir -p {params.clean_up}
+
+        /opt/patric-common/runtime/bin/fastqc --version
+
+        /opt/patric-common/runtime/bin/fastqc {input.raw_read} \
+        -o {params.fastqc_dir} -q
+        """
+
+rule fastqc_unzpd_reads:
+    input:
+        raw_read = "staging/pe_reads/{unzpd_sample}_R{unzpd_read_num}.fastq",
+    params:
+        fastqc_dir = directory("output/{unzpd_sample}/fastqc_results"),
+        clean_up = directory("clean_up"),
+    output:
+        fastqc_html = "output/{unzpd_sample}/fastqc_results/{unzpd_sample}_R{unzpd_read_num}_fastqc.html",
+    shell:
+        """
+        mkdir -p {params.fastqc_dir}
+        mkdir -p {params.clean_up}
+
+        /opt/patric-common/runtime/bin/fastqc --version
+
+        /opt/patric-common/runtime/bin/fastqc {input.raw_read} \
+        -o {params.fastqc_dir} -q
+        """
+
+rule fastqc_ivar:
+    input:
+        ivar_bam = "output/{sample}/assembly/{sample}.ivar.bam",
+        ivar_sorted_bam = "output/{sample}/assembly/{sample}.sorted.bam"
+    params:
+        fastqc_dir = "output/{sample}/fastqc_results",
+        clean_up = "clean_up",
+    output:
+        ivar_html = "output/{sample}/fastqc_results/{sample}.ivar_fastqc.html",
+        ivar_sorted_html = "output/{sample}/fastqc_results/{sample}.sorted_fastqc.html",
+    shell:
+        """
+        mkdir -p {params.fastqc_dir}
+        mkdir -p {params.clean_up}
+
+        /opt/patric-common/runtime/bin/fastqc --version
+
+        /opt/patric-common/runtime/bin/fastqc {input.ivar_bam} \
+        -o {params.fastqc_dir} -q
+
+        /opt/patric-common/runtime/bin/fastqc {input.ivar_sorted_bam} \
+        -o {params.fastqc_dir} -q
+        """
+
+rule samtools_flagstat:
+    input:
+        ivar_sorted_bam = "output/{sample}/assembly/{sample}.sorted.bam"
+    output:
+        flagstat_txt = "output/{sample}/assembly/{sample}_flagstat.txt"
+    shell:
+        """
+        samtools flagstat {input.ivar_sorted_bam} > {output.flagstat_txt}
+        """
