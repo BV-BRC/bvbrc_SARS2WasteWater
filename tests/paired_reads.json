@@ -1,0 +1,33 @@
+{
+    "primers": "ARTIC",
+    "primer_version": "V3",
+    "timeseries_plot_interval": "MS",
+    "recipe": "onecodex",
+    "scientific_name": "2697049",
+    "tax_id": "2697049",
+    "my_label": "paired_test_3_22_2023",
+    "code": [
+        "1",
+        "1"
+    ],
+    "output_path": "/nbowers@bvbrc/home/kicking_the_tires/dev_covid_waste_water/pre_alpha_tests",
+    "output_file": "Severe acute respiratory syndrome coronavirus 2 paired_test_3_22_2023",
+    "paired_end_libs": [
+        {
+            "read1": "/nbowers@bvbrc/home/kicking_the_tires/dev_covid_waste_water/pre_alpha_tests/input_reads/SRR26082479_1.fastq",
+            "read2": "/nbowers@bvbrc/home/kicking_the_tires/dev_covid_waste_water/pre_alpha_tests/input_reads/SRR26082479_2.fastq",
+            "sample_id": "SRR26082479",
+            "primers": "ARTIC",
+            "primer_version": "V3",
+            "sample_level_date": "01/02/2023"
+        },
+        {
+            "read1": "/nbowers@bvbrc/home/kicking_the_tires/dev_covid_waste_water/pre_alpha_tests/input_reads/SRR26082480_1.fastq",
+            "read2": "/nbowers@bvbrc/home/kicking_the_tires/dev_covid_waste_water/pre_alpha_tests/input_reads/SRR26082480_2.fastq",
+            "sample_id": "SRR26082480",
+            "primers": "ARTIC",
+            "primer_version": "V3",
+            "sample_level_date": "02/02/2023"
+        }
+    ]
+}
