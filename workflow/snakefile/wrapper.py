@@ -249,8 +249,7 @@ def run_snakefiles(input_dict, input_dir, output_dir,  config):
         "--use-singularity",
         "--verbose",
         "--printshellcmds",
-        "--keep-going",
-        "--dry-run"
+        "--keep-going"
         ]
 
     if config["cores"] == 1:
