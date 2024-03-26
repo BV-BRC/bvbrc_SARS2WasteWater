@@ -144,8 +144,10 @@ sub process_read_input
 
     my %config_vars;
     # temp
-    my $barcodes_path = "/vol/bvbrc/production/application-backend/SARS2WasteWater/2024-03-06/usher_barcodes.csv";
-    my $curated_linages = "/vol/bvbrc/production/application-backend/SARS2WasteWater/2024-03-06/curated_lineages.json";
+    my $barcodes_path = "$ENV{FD_TOP}usher_barcodes.csv";
+    my $curated_linages_path = "$ENV{FD_TOP}curated_lineages.json";
+    my $lineages_path = "$ENV{FD_TOP}lineages.yml.json";
+
     my $wf_dir = "$ENV{KB_TOP}/workflows/$ENV{KB_MODULE_DIR}";
     if (! -d $wf_dir)
     {
@@ -159,7 +161,8 @@ sub process_read_input
     #
     my $snakemake = "$ENV{KB_RUNTIME}/artic-ncov2019/bin/snakemake";
     $config_vars{barcodes_path} = $barcodes_path;
-    $config_vars{curated_linages} = $curated_linages;
+    $config_vars{curated_lineages_path} = $curated_lineages_path;
+    $config_vars{lineages_path} = $lineages_path;
     $config_vars{staging_sample_metadata_path} = $staging_sample_metadata_path;
     $config_vars{workflow_dir} = $wf_dir;
     $config_vars{input_data_dir} = $staging;
