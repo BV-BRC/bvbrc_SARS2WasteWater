@@ -1,7 +1,3 @@
-### Before deploying on alpha:
-### update barcodes and curated_linages paths to be a variable?
-###
-
 #
 # App wrapper for the SARS2Waterwater analysis pipeline.
 # This runs snakemake files for the BV-BRC's sars2-onecodex pipeline and Freyja
@@ -145,8 +141,8 @@ sub process_read_input
     my %config_vars;
     # temp
     my $barcodes_path = "$ENV{FD_TOP}usher_barcodes.csv";
-    my $curated_linages_path = "$ENV{FD_TOP}curated_lineages.json";
-    my $lineages_path = "$ENV{FD_TOP}lineages.yml.json";
+    my $curated_lineages_path = "$ENV{FD_TOP}curated_lineages.json";
+    my $lineages_path = "$ENV{FD_TOP}lineages.yml";
 
     my $wf_dir = "$ENV{KB_TOP}/workflows/$ENV{KB_MODULE_DIR}";
     if (! -d $wf_dir)
