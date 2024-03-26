@@ -32,7 +32,7 @@
         {
             "srr_accession": "SRR23056214",
             "title": "",
-            "sample_id": "",
+            "sample_id": "SRR23056214",
             "primers": "ARTIC",
             "primer_version": "V3",
             "sample_level_date": "01/03/2021"

@@ -1,6 +1,3 @@
-#### before pushing to alpha fix sample level metadata (primers and dates) ###
-#### before pushing production to uncomment multiqc for production ###
-
 import pandas as pd
 import json
 
@@ -57,7 +54,8 @@ workflow_dir = config["workflow_dir"]
 minimum_base_quality_score_val = config["params"]["minimum_base_quality_score"]
 ### freyja demix command variables ###
 barcodes_path = config["barcodes_path"]
-curated_linages = config["curated_linages"]
+curated_lineages = config["curated_lineages"]
+lineages = config["lineages"]
 eps_val = config["params"]["minimum_lineage_abundance"]
 covcut_val = config["params"]["coverage_estimate"]
 depthcutoff_val = config["params"]["minimum_coverage_depth"]
@@ -150,7 +148,7 @@ rule freyja_variants:
     input:
         ivar_bam_sorted = "output/{sample}/assembly/{sample}.sorted.bam",
         reference = "output/{sample}/assembly/reference_trimmed.fa",
-        curated_linages_ = curated_linages
+        curated_lineages_ = curated_lineages
     params:
         eps = eps_val,
         freyja_analysis_dir = directory("output/{sample}"),
@@ -174,7 +172,7 @@ rule freyja_variants:
 rule freyja_demix:
     input:
         barcodes = barcodes_path,
-        curated_linages_ = curated_linages,
+        curated_lineages_ = curated_lineages,
         variants = "output/{sample}/{sample}_freyja_variants.tsv",
         depth = "output/{sample}/{sample}_freyja.depths",
     params:
@@ -194,7 +192,7 @@ rule freyja_demix:
         freyja demix \
             --eps {params.eps} \
             --barcodes {input.barcodes} \
-            --meta {input.curated_linages_} \
+            --meta {input.curated_lineages_} \
             --covcut {params.covcut} \
             {params.confirmedonly} \
             --depthcutoff {params.depthcutoff} \
@@ -213,6 +211,7 @@ rule sample_freyja_vis:
     params:
         freyja_dir = directory("output/{sample}/"),
         cl_agg_dir = directory("clean_up/single_aggs/{sample}"),
+        lineage_yml = lineages,
         single_aggregate = "output/{sample}/{sample}_aggregated_result.tsv",
         ext = "_demixing_result.csv",
         minimum_genome_coverage = minimum_genome_coverage_val,
@@ -239,6 +238,7 @@ rule sample_freyja_vis:
         freyja plot \
             {params.single_aggregate} \
             --lineages \
+            --lineageyml {params.lineage_yml} \
             --mincov {params.minimum_genome_coverage} \
             --thresh {params.agg_minimum_lineage_abundance} \
             --output {output.lineage_plot} > {params.lineage_plot_msg}
@@ -297,6 +297,7 @@ rule set_freyja_lineage_vis:
         # for snakemake the directory needs to end with "/"
         tmp_dir = directory("tmp/"),
         ext = "_demixing_result.csv",
+        lineage_yml = lineages,
         minimum_genome_coverage = minimum_genome_coverage_val,
         agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val
     output:
@@ -307,6 +308,7 @@ rule set_freyja_lineage_vis:
         freyja plot \
             {input.aggregated} \
             --lineages \
+            --lineageyml {params.lineage_yml} \
             --mincov {params.minimum_genome_coverage} \
             --thresh {params.agg_minimum_lineage_abundance} \
             --output {output.lineage_plot}
@@ -341,6 +343,7 @@ rule lineages_time_series_plot:
         #the directory needs to end with "/"
         tmp_dir = directory("tmp/"),
         ext = "_demixing_result.csv",
+        lineage_yml = lineages,
         minimum_genome_coverage = minimum_genome_coverage_val,
         agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val,
         interval_flag_ = interval_flag,
@@ -352,6 +355,7 @@ rule lineages_time_series_plot:
         """
         freyja plot {input.aggregated} \
             --lineages \
+            --lineageyml {params.lineage_yml} \
             --times {params.metadata_csv} \
             {params.interval_flag_} {params.timeseries_interval} \
             --output {output.multisample_timeseries_plot}
