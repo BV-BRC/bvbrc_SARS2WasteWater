@@ -54,7 +54,7 @@ workflow_dir = config["workflow_dir"]
 minimum_base_quality_score_val = config["params"]["minimum_base_quality_score"]
 ### freyja demix command variables ###
 barcodes_path = config["barcodes_path"]
-curated_lineages = config["curated_lineages"]
+curated_lineages = config["curated_lineages_path"]
 lineages = config["lineages_path"]
 eps_val = config["params"]["minimum_lineage_abundance"]
 covcut_val = config["params"]["coverage_estimate"]
@@ -104,7 +104,7 @@ rule_all_list = [
         expand("output/{sample}/{sample}_freyja_variants.tsv", sample=samples),
         expand("output/{sample}/{sample}_demixing_result.csv", sample=samples),
         expand("output/{sample}/{sample}_variant_plot.png", sample=samples),
-        expand("output/summarized_variants.png", sample=samples),
+        expand("output/multisample_summarized_variants_plot.png", sample=samples),
     ]
 
 # If dates are passed, check if metadata.csv is exists then make the time series plots
@@ -132,8 +132,8 @@ else:
 ## Add Multisample rules to rule all ##
 if len(samples) != 1:
     rule_all_list.append("output/multisample_demix_results.tsv")
-    rule_all_list.append("output/summarized_variants.png")
-    rule_all_list.append("output/lineage_variants.png")
+    rule_all_list.append("output/multisample_summarized_variants_plot.png")
+    rule_all_list.append("output/multisample_lineage_plot.png")
 else:
     msg = f"Only one sample. Not producing multisample outputs"
     sys.stderr.write(msg)
@@ -278,7 +278,7 @@ rule set_freyja_variant_vis:
         minimum_genome_coverage = minimum_genome_coverage_val,
         agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val
     output:
-        summarized_plot = "output/summarized_variants.png",
+        summarized_plot = "output/multisample_summarized_variants_plot.png",
     shell:
         """
         freyja plot \
@@ -301,7 +301,7 @@ rule set_freyja_lineage_vis:
         minimum_genome_coverage = minimum_genome_coverage_val,
         agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val
     output:
-        lineage_plot = "output/lineage_variants.png",
+        lineage_plot = "output/multisample_lineage_plot.png",
     shell:
         """
 
