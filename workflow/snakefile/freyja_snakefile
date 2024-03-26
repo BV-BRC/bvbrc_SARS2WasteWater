@@ -54,7 +54,7 @@ workflow_dir = config["workflow_dir"]
 minimum_base_quality_score_val = config["params"]["minimum_base_quality_score"]
 ### freyja demix command variables ###
 barcodes_path = config["barcodes_path"]
-curated_lineages = config["curated_lineages"]
+curated_lineages = config["curated_lineages_path"]
 lineages = config["lineages_path"]
 eps_val = config["params"]["minimum_lineage_abundance"]
 covcut_val = config["params"]["coverage_estimate"]
