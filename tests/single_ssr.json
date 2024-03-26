@@ -1,7 +1,7 @@
 {
     "primers": "ARTIC",
     "primer_version": "V3",
-    "timeseries_plot_interval": null,
+    "timeseries_plot_interval": "D",
     "recipe": "onecodex",
     "scientific_name": "2697049",
     "tax_id": "2697049",
