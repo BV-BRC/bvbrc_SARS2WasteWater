@@ -155,9 +155,9 @@ rule fastqc_zpd_reads:
         mkdir -p {params.fastqc_dir}
         mkdir -p {params.clean_up}
 
-        /opt/patric-common/runtime/bin/fastqc --version
+        fastqc --version
 
-        /opt/patric-common/runtime/bin/fastqc {input.raw_read} \
+        fastqc {input.raw_read} \
         -o {params.fastqc_dir} -q
         """
 
@@ -174,9 +174,9 @@ rule fastqc_unzpd_reads:
         mkdir -p {params.fastqc_dir}
         mkdir -p {params.clean_up}
 
-        /opt/patric-common/runtime/bin/fastqc --version
+        fastqc --version
 
-        /opt/patric-common/runtime/bin/fastqc {input.raw_read} \
+        fastqc {input.raw_read} \
         -o {params.fastqc_dir} -q
         """
 
@@ -195,12 +195,12 @@ rule fastqc_ivar:
         mkdir -p {params.fastqc_dir}
         mkdir -p {params.clean_up}
 
-        /opt/patric-common/runtime/bin/fastqc --version
+        fastqc --version
 
-        /opt/patric-common/runtime/bin/fastqc {input.ivar_bam} \
+        fastqc {input.ivar_bam} \
         -o {params.fastqc_dir} -q
 
-        /opt/patric-common/runtime/bin/fastqc {input.ivar_sorted_bam} \
+        fastqc {input.ivar_sorted_bam} \
         -o {params.fastqc_dir} -q
         """
 
