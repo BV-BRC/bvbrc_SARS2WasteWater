@@ -318,12 +318,13 @@ rule time_series_plot:
         lineage_yml = lineages,
         timeseries_interval = timeseries_interval_val,
         metadata_csv = time_metadata_csv,
-        edited_metadata_csv = "edited_sample_time_metadata.csv"
+        edited_metadata_csv = "edited_sample_time_metadata.csv",
+        edit_time_metadata = os.path.join(workflow_dir, "scripts/edit_time_metadata_csv.py")
     output:
         multisample_timeseries_plot = "output/multisample_timeseries.png"
     shell:
         """
-        python3 edit_time_metadata_csv.py
+        python3 {params.edit_time_metadata}
 
         freyja plot {input.aggregated} \
             --times {params.metadata_csv} \
@@ -345,12 +346,13 @@ rule lineages_time_series_plot:
         interval_flag_ = interval_flag,
         timeseries_interval = timeseries_interval_val,
         metadata_csv = time_metadata_csv,
-        edited_metadata_csv = "edited_sample_time_metadata.csv"
+        edited_metadata_csv = "edited_sample_time_metadata.csv",
+        edit_time_metadata = os.path.join(workflow_dir, "scripts/edit_time_metadata_csv.py")
     output:
         multisample_timeseries_plot = "output/multisample_timeseries_lineages.png"
     shell:
         """
-        python3 edit_time_metadata_csv.py
+        python3 {params.edit_time_metadata}
 
         freyja plot {input.aggregated} \
             --lineages \
