@@ -1,6 +1,6 @@
 {
-  "id": "SARS2WasteWater",
-  "script": "App-SARS2WasteWater",
+  "id": "SARS2Wastewater",
+  "script": "App-SARS2Wastewater",
   "label": "Assemble SARS2 reads",
   "description": "Assemble SARS2 reads into a consensus sequence",
   "parameters": [
