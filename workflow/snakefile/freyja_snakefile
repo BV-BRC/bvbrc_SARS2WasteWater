@@ -1,18 +1,6 @@
+## add something that checks if the file exisits then if it doesn't removes it from the table
 import pandas as pd
 import json
-
-def merge_lists_of_ordered_dicts(list1, list2):
-    merged_list = []
-    for dicts1, dicts2 in zip(list1, list2):
-        merged_dict = OrderedDict()
-        keys = set(dicts1.keys()) | set(dicts2.keys())
-        for key in keys:
-            if key in dicts1:
-                merged_dict[key] = dicts1[key]
-            if key in dicts2:
-                merged_dict[key] = dicts2[key]
-        merged_list.append(merged_dict)
-    return merged_list
 
 msg = "snakefile command recieved - FREYJA AND POST PROCESSING \n"
 sys.stderr.write(msg)
@@ -231,6 +219,7 @@ rule sample_freyja_vis:
 
         freyja plot \
             {params.single_aggregate} \
+            --lineageyml {params.lineage_yml} \
             --mincov {params.minimum_genome_coverage} \
             --thresh {params.agg_minimum_lineage_abundance} \
             --output {output.plot} > {params.variant_plot_msg}
@@ -275,6 +264,7 @@ rule set_freyja_variant_vis:
         # for snakemake the directory needs to end with "/"
         tmp_dir = directory("tmp/"),
         ext = "_demixing_result.csv",
+        lineage_yml = lineages,
         minimum_genome_coverage = minimum_genome_coverage_val,
         agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val
     output:
@@ -283,6 +273,7 @@ rule set_freyja_variant_vis:
         """
         freyja plot \
             {input.set_agg} \
+            --lineageyml {params.lineage_yml} \
             --mincov {params.minimum_genome_coverage} \
             --thresh {params.agg_minimum_lineage_abundance} \
             --output {output.summarized_plot}
@@ -324,14 +315,20 @@ rule time_series_plot:
         minimum_genome_coverage = minimum_genome_coverage_val,
         agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val,
         interval_flag_ = interval_flag,
+        lineage_yml = lineages,
         timeseries_interval = timeseries_interval_val,
-        metadata_csv = time_metadata_csv
+        metadata_csv = time_metadata_csv,
+        edited_metadata_csv = "edited_sample_time_metadata.csv",
+        edit_time_metadata = os.path.join(workflow_dir, "scripts/edit_time_metadata_csv.py")
     output:
         multisample_timeseries_plot = "output/multisample_timeseries.png"
     shell:
         """
+        python3 {params.edit_time_metadata}
+
         freyja plot {input.aggregated} \
             --times {params.metadata_csv} \
+            --lineageyml {params.lineage_yml} \
             {params.interval_flag_} {params.timeseries_interval} \
             --output {output.multisample_timeseries_plot}
         """
@@ -348,15 +345,19 @@ rule lineages_time_series_plot:
         agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val,
         interval_flag_ = interval_flag,
         timeseries_interval = timeseries_interval_val,
-        metadata_csv = time_metadata_csv
+        metadata_csv = time_metadata_csv,
+        edited_metadata_csv = "edited_sample_time_metadata.csv",
+        edit_time_metadata = os.path.join(workflow_dir, "scripts/edit_time_metadata_csv.py")
     output:
         multisample_timeseries_plot = "output/multisample_timeseries_lineages.png"
     shell:
         """
+        python3 {params.edit_time_metadata}
+
         freyja plot {input.aggregated} \
             --lineages \
             --lineageyml {params.lineage_yml} \
-            --times {params.metadata_csv} \
+            --times {params.edited_metadata_csv} \
             {params.interval_flag_} {params.timeseries_interval} \
             --output {output.multisample_timeseries_plot}
         """
