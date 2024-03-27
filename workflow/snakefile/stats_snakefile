@@ -1,6 +1,3 @@
-#### before pushing to alpha fix sample level metadata (primers and dates) ###
-#### before pushing production to uncomment multiqc for production ###
-
 msg = "snakefile command recieved - STATS/Wrap up \n"
 sys.stderr.write(msg)
 
