@@ -5,7 +5,7 @@
 
 use Bio::KBase::AppService::AppScript;
 use Bio::KBase::AppService::ReadSet;
-use Bio::KBase::AppService::AppConfig qw(metagenome_dbs);
+use Bio::KBase::AppService::AppConfig qw(application_backend_dir);
 use File::Slurp;
 use IPC::Run;
 use Cwd qw(abs_path getcwd);
@@ -140,9 +140,11 @@ sub process_read_input
 
     my %config_vars;
     # temp
-    my $barcodes_path = "$ENV{FD_TOP}usher_barcodes.csv";
-    my $curated_lineages_path = "$ENV{FD_TOP}curated_lineages.json";
-    my $lineages_path = "$ENV{FD_TOP}lineages.yml";
+
+    my $data_dir = application_backend_dir . "/bvbrc_SARS2Wastewater/current";
+    my $barcodes_path = "$data_dir/usher_barcodes.csv";
+    my $curated_lineages_path = "$data_dir/curated_lineages.json";
+    my $lineages_path = "$data_dir/lineages.yml";
 
     my $wf_dir = "$ENV{KB_TOP}/workflows/$ENV{KB_MODULE_DIR}";
     if (! -d $wf_dir)
