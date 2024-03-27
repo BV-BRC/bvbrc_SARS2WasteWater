@@ -11,9 +11,7 @@ for index, row in df.iterrows():
     # print(os.path.join(path, "/home", "file.txt"))
 
     variant_file_path = os.path.join("output", sample_id, row["Sample"])
-    print(variant_file_path)
     if os.path.exists(variant_file_path):
-        print('file exisits')
         mask.append(True)
     else:
         mask.append(False)
