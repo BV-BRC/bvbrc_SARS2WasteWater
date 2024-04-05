@@ -48,7 +48,7 @@ primer_version = config["params"]["primer_version"]
 
 
 rule_all_list = [
-        expand("output/multisample_summarized_variants_plot.png", sample=samples),
+        expand("output/multisample_variants_plot.png", sample=samples),
         "output/multiqc_report.html",
         "output/version_log.txt",
         "output/job_stats.csv"
@@ -76,7 +76,7 @@ else:
 ## Add Multisample rules to rule all ##
 if len(samples) != 1:
     rule_all_list.append("output/multisample_demix_results.tsv")
-    rule_all_list.append("output/multisample_summarized_variants_plot.png")
+    rule_all_list.append("output/multisample_variants_plot.png")
     rule_all_list.append("output/multisample_lineage_plot.png")
 else:
     msg = f"Only one sample. Not producing multisample outputs"
@@ -117,7 +117,7 @@ rule set_freyja_variant_vis:
         minimum_genome_coverage = minimum_genome_coverage_val,
         agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val
     output:
-        summarized_plot = "output/multisample_summarized_variants_plot.png",
+        summarized_plot = "output/multisample_variants_plot.png",
     shell:
         """
         freyja plot \
