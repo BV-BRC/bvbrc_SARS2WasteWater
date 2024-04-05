@@ -35,11 +35,16 @@ deploy: deploy-all
 deploy-all: deploy-client 
 deploy-client: deploy-libs deploy-scripts deploy-docs
 
-deploy-service: deploy-libs deploy-scripts deploy-service-scripts deploy-specs
+deploy-service: deploy-libs deploy-scripts deploy-service-scripts deploy-specs deploy-workflow
 
 deploy-specs:
 	mkdir -p $(TARGET)/services/$(APP_SERVICE)
 	rsync -arv app_specs $(TARGET)/services/$(APP_SERVICE)/.
+
+deploy-workflow:
+	mkdir -p $(TARGET)/workflows
+	rm -rf $(TARGET)/workflows/$(CURRENT_DIR)
+	rsync -arv workflow/. $(TARGET)/workflows/$(CURRENT_DIR)
 
 deploy-service-scripts:
 	export KB_TOP=$(TARGET); \
