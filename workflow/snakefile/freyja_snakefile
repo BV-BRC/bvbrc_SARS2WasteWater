@@ -89,8 +89,8 @@ with open("config.json") as f:
 
 # Define base rule all
 rule_all_list = [
-        expand("output/{sample}/{sample}_freyja_variants.tsv", sample=samples),
-        expand("output/{sample}/{sample}_freyja_result.tsv", sample=samples),
+        expand("output/{sample}/freyja/{sample}_freyja_variants.tsv", sample=samples),
+        expand("output/{sample}/freyja/{sample}_freyja_result.tsv", sample=samples),
         expand("output/{sample}/{sample}_variant_plot.png", sample=samples),
         expand("clean_up/single_aggs/{sample}/{sample}_R1_fastqc.zip", sample=samples),
         expand("clean_up/single_aggs/{sample}/{sample}_R2_fastqc.zip", sample=samples)
@@ -111,8 +111,8 @@ rule freyja_variants:
         minimum_base_quality_score = minimum_base_quality_score_val,
         tmp_dir = directory("./tmp/")
     output:
-        variants = "output/{sample}/{sample}_freyja_variants.tsv",
-        depth = "output/{sample}/{sample}_freyja.depths",
+        variants = "output/{sample}/freyja/{sample}_freyja_variants.tsv",
+        depth = "output/{sample}/freyja/{sample}_freyja.depths",
     shell:
         """
         mkdir -p {params.freyja_analysis_dir}
@@ -129,8 +129,8 @@ rule freyja_demix:
     input:
         barcodes = barcodes_path,
         curated_lineages_ = curated_lineages,
-        variants = "output/{sample}/{sample}_freyja_variants.tsv",
-        depth = "output/{sample}/{sample}_freyja.depths",
+        variants = "output/{sample}/freyja/{sample}_freyja_variants.tsv",
+        depth = "output/{sample}/freyja/{sample}_freyja.depths",
     params:
         eps = eps_val,
         covcut = covcut_val,
@@ -139,7 +139,7 @@ rule freyja_demix:
         tmp_dir = directory("tmp/"),
         error_msg = "tmp/{sample}_demix_error.txt"
     output:
-        freyja_file = "output/{sample}/{sample}_freyja_result.tsv",
+        freyja_file = "output/{sample}/freyja/{sample}_freyja_result.tsv",
         tmp_freyja = "tmp/{sample}_freyja_result.tsv"
     shell:
         """
@@ -163,7 +163,7 @@ rule sample_freyja_vis:
     input:
         # Freyja aggregate command expects a directory not the demixing results files themselves
         # adding the demxing results to help multi threading track the order
-        freyja_file = "output/{sample}/{sample}_freyja_result.tsv"
+        freyja_file = "output/{sample}/freyja/{sample}_freyja_result.tsv"
     params:
         freyja_dir = directory("output/{sample}/"),
         cl_agg_dir = directory("clean_up/single_aggs/{sample}"),
