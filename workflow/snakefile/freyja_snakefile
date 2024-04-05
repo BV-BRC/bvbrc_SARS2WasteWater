@@ -5,7 +5,7 @@ import json
 msg = "snakefile command recieved - FREYJA AND POST PROCESSING \n"
 sys.stderr.write(msg)
 
-# ruleorder: freyja_variants > freyja_demix > sample_freyja_vis
+ruleorder: freyja_demix > sample_freyja_vis > clean_up_fastqc_zip
 ### Define wildcards ###
 pe_zpd_samples = glob_wildcards("staging/pe_reads/{sample}_R{read_num}.fastq.gz").sample
 pe_unzpd_samples = glob_wildcards("staging/pe_reads/{sample}_R{read_num}.fastq").sample
@@ -40,7 +40,7 @@ configfile: "config.json"
 workflow_dir = config["workflow_dir"]
 ### freyja variant variables ###
 minimum_base_quality_score_val = config["params"]["minimum_base_quality_score"]
-### freyja demix command variables ###
+### freyja command variables ###
 barcodes_path = config["barcodes_path"]
 curated_lineages = config["curated_lineages_path"]
 lineages = config["lineages_path"]
@@ -58,74 +58,43 @@ agg_minimum_lineage_abundance_val = config["params"]["agg_minimum_lineage_abunda
 
 
 # Load the JSON data
-with open('config.json') as f:
+with open("config.json") as f:
     data = json.load(f)
+    # Extract data from single_end_libs with dates (ignore without dates)
+    single_end_data = [(entry['sample_id'], entry['sample_level_date']) 
+                   for entry in data['params']['single_end_libs'] 
+                   if entry.get('sample_level_date') is not None]
 
-# Extract data from single_end_libs
-single_end_data = [(entry['sample_id'], entry['sample_level_date']) for entry in data['params']['single_end_libs']]
-
-# Extract data from paired_end_libs
-paired_end_data = [(entry['sample_id'], entry['sample_level_date']) for entry in data['params']['paired_end_libs']]
-
-# Create DataFrame for single_end_libs
-single_end_df = pd.DataFrame(single_end_data, columns=['sample_id', 'sample_level_date'])
-
-# Create DataFrame for paired_end_libs
-paired_end_df = pd.DataFrame(paired_end_data, columns=['sample_id', 'sample_level_date'])
-
-# Concatenate single_end_df and paired_end_df
-merged_df = pd.concat([single_end_df, paired_end_df], ignore_index=True)
-## prep date .CSV for Freyja plotting ##
-# Pull outonly the columns Freyja is expecting
-dates_df = merged_df[['sample_id', 'sample_level_date']]
-# Rename columns for the column names Freyja is expecting 
-dates_df.rename(columns={"sample_id":"Sample", "sample_level_date":"sample_collection_datetime"}, inplace = True)
-# # Add _freyja_variants.tsv to sample id as Freyja is expecting 
-variant_file_ext = '_freyja_variants.tsv'
-dates_df['Sample'] = dates_df['Sample'].astype(str) + variant_file_ext
-# Print date and sample information to csv for Freyja plotting command
-dates_df.to_csv("sample_time_metadata.csv", index=False)
-
+    # Extract data from paired_end_libs with dates (ignore without dates)
+    # paired_end_data = [(entry['sample_id'], entry.get('sample_level_date', None)) for entry in data['params']['paired_end_libs']]
+    paired_end_data = [(entry['sample_id'], entry['sample_level_date']) 
+                   for entry in data['params']['paired_end_libs'] 
+                   if entry.get('sample_level_date') is not None]
+    #Create DataFrame for single_end_libs
+    single_end_df = pd.DataFrame(single_end_data, columns=['sample_id', 'sample_level_date'])
+    # # Create DataFrame for paired_end_libs
+    paired_end_df = pd.DataFrame(paired_end_data, columns=['sample_id', 'sample_level_date'])
+    # Concatenate single_end_df and paired_end_df
+    merged_df = pd.concat([single_end_df, paired_end_df], ignore_index=True)
+    # ## prep date .CSV for Freyja plotting ##
+    # Pull outonly the columns Freyja is expecting
+    dates_df = merged_df[['sample_id', 'sample_level_date']]
+    # Rename columns for the column names Freyja is expecting 
+    dates_df.rename(columns={"sample_id":"Sample", "sample_level_date":"sample_collection_datetime"}, inplace = True)
+    # # Add _freyja_variants.tsv to sample id as Freyja is expecting 
+    variant_file_ext = '_freyja_variants.tsv'
+    dates_df['Sample'] = dates_df['Sample'].astype(str) + variant_file_ext
+    # Print date and sample information to csv for Freyja plotting command
+    dates_df.to_csv("sample_time_metadata.csv", index=False)
 
 # Define base rule all
 rule_all_list = [
         expand("output/{sample}/{sample}_freyja_variants.tsv", sample=samples),
-        expand("output/{sample}/{sample}_demixing_result.csv", sample=samples),
+        expand("output/{sample}/{sample}_freyja_result.tsv", sample=samples),
         expand("output/{sample}/{sample}_variant_plot.png", sample=samples),
-        expand("output/multisample_summarized_variants_plot.png", sample=samples),
+        expand("clean_up/single_aggs/{sample}/{sample}_R1_fastqc.zip", sample=samples),
+        expand("clean_up/single_aggs/{sample}/{sample}_R2_fastqc.zip", sample=samples)
     ]
-
-# If dates are passed, check if metadata.csv is exists then make the time series plots
-if os.path.exists("sample_time_metadata.csv"):
-    time_metadata_csv = "sample_time_metadata.csv"
-    # add time series plot to rule all
-    rule_all_list.append("output/multisample_timeseries.png")
-    rule_all_list.append("output/multisample_timeseries_lineages.png")
-    # if timeseries plot interval is not given use
-    if config["params"]["timeseries_plot_interval"] == "0":
-        interval_flag = ""
-        timeseries_interval_val = ""
-        print('making time series plots with default time interval of months')
-    else:
-        timeseries_interval_val = config["params"]["timeseries_plot_interval"]
-        interval_flag = "--interval"
-        print("making time series interval plots with given interval of {}".format(timeseries_interval_val))
-else:
-    time_metadata_csv = ""
-    timeseries_interval_val = ""
-    msg = f"Sample date data is unavailable. Not producing time series plots"
-    sys.stderr.write(msg)
-    pass
-
-## Add Multisample rules to rule all ##
-if len(samples) != 1:
-    rule_all_list.append("output/multisample_demix_results.tsv")
-    rule_all_list.append("output/multisample_summarized_variants_plot.png")
-    rule_all_list.append("output/multisample_lineage_plot.png")
-else:
-    msg = f"Only one sample. Not producing multisample outputs"
-    sys.stderr.write(msg)
-    pass
 
 
 rule all:
@@ -136,7 +105,6 @@ rule freyja_variants:
     input:
         ivar_bam_sorted = "output/{sample}/assembly/{sample}.sorted.bam",
         reference = "output/{sample}/assembly/reference_trimmed.fa",
-        curated_lineages_ = curated_lineages
     params:
         eps = eps_val,
         freyja_analysis_dir = directory("output/{sample}"),
@@ -171,8 +139,8 @@ rule freyja_demix:
         tmp_dir = directory("tmp/"),
         error_msg = "tmp/{sample}_demix_error.txt"
     output:
-        freyja_file = "output/{sample}/{sample}_demixing_result.csv",
-        tmp_freyja = "tmp/{sample}_demixing_result.csv"
+        freyja_file = "output/{sample}/{sample}_freyja_result.tsv",
+        tmp_freyja = "tmp/{sample}_freyja_result.tsv"
     shell:
         """
         mkdir -p {params.tmp_dir}
@@ -182,11 +150,11 @@ rule freyja_demix:
             --barcodes {input.barcodes} \
             --meta {input.curated_lineages_} \
             --covcut {params.covcut} \
-            {params.confirmedonly} \
+            --output {output.freyja_file} {params.confirmedonly} \
             --depthcutoff {params.depthcutoff} \
             {input.variants} \
             {input.depth} \
-            --output {output.freyja_file} > {params.error_msg}
+            > {params.error_msg}
 
         cp {output.freyja_file} {output.tmp_freyja}
         """
@@ -195,7 +163,7 @@ rule sample_freyja_vis:
     input:
         # Freyja aggregate command expects a directory not the demixing results files themselves
         # adding the demxing results to help multi threading track the order
-        freyja_file = "output/{sample}/{sample}_demixing_result.csv"
+        freyja_file = "output/{sample}/{sample}_freyja_result.tsv"
     params:
         freyja_dir = directory("output/{sample}/"),
         cl_agg_dir = directory("clean_up/single_aggs/{sample}"),
@@ -237,127 +205,17 @@ rule sample_freyja_vis:
 
         mv {params.single_aggregate} {output.clean_single_aggregate}
         """
-
-rule set_aggregate_command:
+rule clean_up_fastqc_zip:
     input:
-        # Freyja aggregate command expects a directory not the files themselves
-        # Using the tmp message file incase a sample files to stil populate even if some samples fail
-        # Using set to ensure all files try to run demix. Then use any availble demix results.
-        set_tmp_msg_file = set(expand("output/{sample}/{sample}_demixing_result.csv", sample=samples))
+        zip_path_R1 = "output/{sample}/fastqc_results/{sample}_R1_fastqc.zip",
+        zip_path_R2 = "output/{sample}/fastqc_results/{sample}_R2_fastqc.zip"
     params:
-        # for snakemake the directory needs to end with "/"
-        tmp_dir = directory("tmp/"),
-        ext = "_demixing_result.csv",
+        cl_agg_dir = directory("clean_up/fastqc/{sample}")
     output:
-        aggregated = "output/multisample_demix_results.tsv",
+        clean_fastqc_zip_R1 = "clean_up/single_aggs/{sample}/{sample}_R1_fastqc.zip",
+        clean_fastqc_zip_R2 = "clean_up/single_aggs/{sample}/{sample}_R2_fastqc.zip"
     shell:
         """
-        freyja aggregate \
-            {params.tmp_dir} \
-            --ext {params.ext} \
-            --output {output.aggregated}
-        """
-rule set_freyja_variant_vis:
-    input:
-        set_agg = "output/multisample_demix_results.tsv"
-    params:
-        # for snakemake the directory needs to end with "/"
-        tmp_dir = directory("tmp/"),
-        ext = "_demixing_result.csv",
-        lineage_yml = lineages,
-        minimum_genome_coverage = minimum_genome_coverage_val,
-        agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val
-    output:
-        summarized_plot = "output/multisample_summarized_variants_plot.png",
-    shell:
-        """
-        freyja plot \
-            {input.set_agg} \
-            --lineageyml {params.lineage_yml} \
-            --mincov {params.minimum_genome_coverage} \
-            --thresh {params.agg_minimum_lineage_abundance} \
-            --output {output.summarized_plot}
-        """
-
-rule set_freyja_lineage_vis:
-    input:
-        # Using the tmp message file incase a sample files to stil populate even if some samples fail
-        # Using set to ensure all files try to run demix. Then use any availble demix results.
-        aggregated = "output/multisample_demix_results.tsv"
-    params:
-        # for snakemake the directory needs to end with "/"
-        tmp_dir = directory("tmp/"),
-        ext = "_demixing_result.csv",
-        lineage_yml = lineages,
-        minimum_genome_coverage = minimum_genome_coverage_val,
-        agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val
-    output:
-        lineage_plot = "output/multisample_lineage_plot.png",
-    shell:
-        """
-
-        freyja plot \
-            {input.aggregated} \
-            --lineages \
-            --lineageyml {params.lineage_yml} \
-            --mincov {params.minimum_genome_coverage} \
-            --thresh {params.agg_minimum_lineage_abundance} \
-            --output {output.lineage_plot}
-        """
-
-rule time_series_plot:
-    input:
-        aggregated = "output/multisample_demix_results.tsv",
-    params:
-        #the directory needs to end with "/"
-        tmp_dir = directory("tmp/"),
-        ext = "_demixing_result.csv",
-        minimum_genome_coverage = minimum_genome_coverage_val,
-        agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val,
-        interval_flag_ = interval_flag,
-        lineage_yml = lineages,
-        timeseries_interval = timeseries_interval_val,
-        metadata_csv = time_metadata_csv,
-        edited_metadata_csv = "edited_sample_time_metadata.csv",
-        edit_time_metadata = os.path.join(workflow_dir, "scripts/edit_time_metadata_csv.py")
-    output:
-        multisample_timeseries_plot = "output/multisample_timeseries.png"
-    shell:
-        """
-        python3 {params.edit_time_metadata}
-
-        freyja plot {input.aggregated} \
-            --times {params.metadata_csv} \
-            --lineageyml {params.lineage_yml} \
-            {params.interval_flag_} {params.timeseries_interval} \
-            --output {output.multisample_timeseries_plot}
-        """
-
-rule lineages_time_series_plot:
-    input:
-        aggregated = "output/multisample_demix_results.tsv",
-    params:
-        #the directory needs to end with "/"
-        tmp_dir = directory("tmp/"),
-        ext = "_demixing_result.csv",
-        lineage_yml = lineages,
-        minimum_genome_coverage = minimum_genome_coverage_val,
-        agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val,
-        interval_flag_ = interval_flag,
-        timeseries_interval = timeseries_interval_val,
-        metadata_csv = time_metadata_csv,
-        edited_metadata_csv = "edited_sample_time_metadata.csv",
-        edit_time_metadata = os.path.join(workflow_dir, "scripts/edit_time_metadata_csv.py")
-    output:
-        multisample_timeseries_plot = "output/multisample_timeseries_lineages.png"
-    shell:
-        """
-        python3 {params.edit_time_metadata}
-
-        freyja plot {input.aggregated} \
-            --lineages \
-            --lineageyml {params.lineage_yml} \
-            --times {params.edited_metadata_csv} \
-            {params.interval_flag_} {params.timeseries_interval} \
-            --output {output.multisample_timeseries_plot}
+        mv {input.zip_path_R1} {output.clean_fastqc_zip_R1}
+        mv {input.zip_path_R2} {output.clean_fastqc_zip_R2}
         """
