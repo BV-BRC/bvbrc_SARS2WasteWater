@@ -7,8 +7,7 @@ import os
 df = pd.read_csv("sample_time_metadata.csv")
 mask = []
 for index, row in df.iterrows():
-    sample_id = row["Sample"].split("_")[0]
-    # print(os.path.join(path, "/home", "file.txt"))
+    sample_id = row["Sample"].strip("_freyja_variants.tsv")
 
     variant_file_path = os.path.join("output", sample_id, row["Sample"])
     if os.path.exists(variant_file_path):

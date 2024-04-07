@@ -54,11 +54,6 @@ onstart: onstart
 onsuccess: onsuccess
 onerror: onerror
 
-### Get variables from config ###
-configfile: "config.json"
-primer = config["params"]["primers"]
-primer_ver = config["params"]["primer_version"]
-
 msg = "snakefile command recieved - FREYJA PAIRED END FASTQ PROCESSING \n"
 sys.stderr.write(msg)
 
@@ -130,6 +125,7 @@ rule unzpd_assembly:
         ivar_sorted_bam = "output/{unzpd_sample}/assembly/{unzpd_sample}.sorted.bam"
     shell:
         """
+
         mkdir -p {params.output_dir}
 
         sars2-onecodex -k -j 12 -D 3 -d 8000 \
