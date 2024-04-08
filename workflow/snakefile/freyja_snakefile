@@ -165,11 +165,11 @@ rule sample_freyja_vis:
         # adding the demxing results to help multi threading track the order
         freyja_file = "output/{sample}/freyja/{sample}_freyja_result.tsv"
     params:
-        freyja_dir = directory("output/{sample}/"),
+        freyja_dir = directory("output/{sample}/freyja/"),
         cl_agg_dir = directory("clean_up/single_aggs/{sample}"),
         lineage_yml = lineages,
         single_aggregate = "output/{sample}/{sample}_aggregated_result.tsv",
-        ext = "_demixing_result.csv",
+        ext = "_freyja_result.tsv",
         minimum_genome_coverage = minimum_genome_coverage_val,
         agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val,
         variant_plot_msg = "tmp/{sample}_sample_variant_plot_error.txt",
