@@ -59,23 +59,13 @@ if os.path.exists("sample_time_metadata.csv"):
     # add time series plot to rule all
     rule_all_list.append("output/variants_by_month_plot.png")
     rule_all_list.append("output/lineages_by_month_plot.png")
-    # if timeseries plot interval is not given use
-    if config["params"]["timeseries_plot_interval"] == "0":
-        interval_flag = ""
-        timeseries_interval_val = ""
-        print('making time series plots with default time interval of months')
-    else:
-        timeseries_interval_val = config["params"]["timeseries_plot_interval"]
-        interval_flag = "--interval"
-        print("making time series interval plots with given interval of {}".format(timeseries_interval_val))
-else:
-    time_metadata_csv = ""
-    timeseries_interval_val = ""
-    pass
+
 
 ## Add Multisample rules to rule all ##
-if len(samples) != 1:
-    rule_all_list.append("output/multisample_demix_results.tsv")
+print(samples)
+print(set(samples))
+if len(set(samples)) != 1:
+    rule_all_list.append("output/multisample_freyja_result.tsv")
     rule_all_list.append("output/multisample_variants_plot.png")
     rule_all_list.append("output/multisample_lineage_plot.png")
 else:
@@ -98,7 +88,7 @@ rule set_aggregate_command:
         tmp_dir = directory("tmp/"),
         ext = "_freyja_result.tsv ",
     output:
-        aggregated = "output/multisample_demix_results.tsv",
+        aggregated = "output/multisample_freyja_result.tsv",
     shell:
         """
         freyja aggregate \
@@ -108,7 +98,7 @@ rule set_aggregate_command:
         """
 rule set_freyja_variant_vis:
     input:
-        set_agg = "output/multisample_demix_results.tsv"
+        set_agg = "output/multisample_freyja_result.tsv"
     params:
         # for snakemake the directory needs to end with "/"
         tmp_dir = directory("tmp/"),
@@ -132,7 +122,7 @@ rule set_freyja_lineage_vis:
     input:
         # Using the tmp message file incase a sample files to stil populate even if some samples fail
         # Using set to ensure all files try to run demix. Then use any availble demix results.
-        aggregated = "output/multisample_demix_results.tsv"
+        aggregated = "output/multisample_freyja_result.tsv"
     params:
         # for snakemake the directory needs to end with "/"
         tmp_dir = directory("tmp/"),
@@ -156,16 +146,14 @@ rule set_freyja_lineage_vis:
 
 rule set_timeseries_plot:
     input:
-        aggregated = "output/multisample_demix_results.tsv",
+        aggregated = "output/multisample_freyja_result.tsv",
     params:
         #the directory needs to end with "/"
         tmp_dir = directory("tmp/"),
         ext = "_demixing_result.csv",
         minimum_genome_coverage = minimum_genome_coverage_val,
         agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val,
-        interval_flag_ = interval_flag,
         lineage_yml = lineages,
-        timeseries_interval = timeseries_interval_val,
         metadata_csv = time_metadata_csv,
         edited_metadata_csv = "edited_sample_time_metadata.csv",
         edit_time_metadata = os.path.join(workflow_dir, "scripts/edit_time_metadata_csv.py")
@@ -179,21 +167,18 @@ rule set_timeseries_plot:
         python3 {params.edit_time_metadata}
 
         freyja plot {input.aggregated} \
-            --lineages \
             --lineageyml {params.lineage_yml} \
             --times {params.edited_metadata_csv} \
             --interval D \
             --output {output.day_plot}
 
         freyja plot {input.aggregated} \
-            --lineages \
             --lineageyml {params.lineage_yml} \
             --times {params.edited_metadata_csv} \
             --interval W \
             --output {output.week_plot}
 
         freyja plot {input.aggregated} \
-            --lineages \
             --lineageyml {params.lineage_yml} \
             --times {params.edited_metadata_csv} \
             --interval MS \
@@ -202,7 +187,7 @@ rule set_timeseries_plot:
 
 rule set_lineages_timeseries_plot:
     input:
-        aggregated = "output/multisample_demix_results.tsv",
+        aggregated = "output/multisample_freyja_result.tsv",
     params:
         #the directory needs to end with "/"
         tmp_dir = directory("tmp/"),
@@ -210,8 +195,6 @@ rule set_lineages_timeseries_plot:
         lineage_yml = lineages,
         minimum_genome_coverage = minimum_genome_coverage_val,
         agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val,
-        # interval_flag_ = interval_flag,
-        # timeseries_interval = timeseries_interval_val,
         metadata_csv = time_metadata_csv,
         edited_metadata_csv = "edited_sample_time_metadata.csv",
         edit_time_metadata = os.path.join(workflow_dir, "scripts/edit_time_metadata_csv.py")

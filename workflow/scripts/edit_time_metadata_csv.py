@@ -7,9 +7,9 @@ import os
 df = pd.read_csv("sample_time_metadata.csv")
 mask = []
 for index, row in df.iterrows():
-    sample_id = row["Sample"].strip("_freyja_variants.tsv")
+    sample_id = row["Sample"].replace("_freyja_variants.tsv", "")
 
-    variant_file_path = os.path.join("output", sample_id, row["Sample"])
+    variant_file_path = os.path.join("output", sample_id, "freyja", row["Sample"])
     if os.path.exists(variant_file_path):
         mask.append(True)
     else:
