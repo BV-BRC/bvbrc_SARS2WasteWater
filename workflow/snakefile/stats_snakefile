@@ -50,7 +50,7 @@ primer_version = config["params"]["primer_version"]
 rule_all_list = [
         "output/multiqc_report.html",
         "output/version_log.txt",
-        "output/job_stats.csv",
+        "output/job_stats.tsv",
         "output/freyja_result.tsv",
         "output/variants_plot.png",
         "output/lineage_plot.png"
@@ -268,8 +268,8 @@ rule run_stats_report:
     params:
         prep_results_path = os.path.join(workflow_dir, 'scripts/prep_results.py')
     output:
-        results_csv = "output/job_stats.csv"
+        results_tsv = "output/job_stats.tsv"
     shell:
         """
-        python3 {params.prep_results_path} {output.results_csv}
+        python3 {params.prep_results_path} {output.results_tsv}
         """
