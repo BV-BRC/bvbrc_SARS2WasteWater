@@ -52,7 +52,7 @@ rule_all_list = [
         "output/version_log.txt",
         "output/job_stats.csv",
         "output/freyja_result.tsv",
-        "output/lineage_plot.png",
+        "output/variants_plot.png",
         "output/lineage_plot.png"
 ]
 # If dates are passed, check if metadata.csv is exists then make the time series plots
