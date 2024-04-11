@@ -1,0 +1,37 @@
+{
+    "primers": "ARTIC",
+    "primer_version": "V3",
+    "recipe": "onecodex",
+    "output_path": "/olson@patricbrc.org/PATRIC-QA/applications/App-SARS2Wastewater",
+    "output_file": "single_end_read_library",
+    "single_end_libs": [
+        {
+            "read": "/olson@patricbrc.org/PATRIC-QA/DataSets/SARS2Wastewater/SRR23056213.fastq",
+            "sample_id": "SRR18540966",
+            "primers": "ARTIC",
+            "primer_version": "V3",
+            "sample_level_date": ""
+        },
+        {
+            "read": "/olson@patricbrc.org/PATRIC-QA/DataSets/SARS2Wastewater/SRR23056214.fastq",
+            "sample_id": "SRR18540966",
+            "primers": "ARTIC",
+            "primer_version": "V3",
+            "sample_level_date": ""
+        },
+        {
+            "read": "/olson@patricbrc.org/PATRIC-QA/DataSets/SARS2Wastewater/SRR23056215.fastq",
+            "sample_id": "SRR18540966",
+            "primers": "ARTIC",
+            "primer_version": "V3",
+            "sample_level_date": ""
+        },
+        {
+            "read": "/olson@patricbrc.org/PATRIC-QA/DataSets/SARS2Wastewater/SRR23056216.fastq",
+            "sample_id": "SRR18540966",
+            "primers": "ARTIC",
+            "primer_version": "V3",
+            "sample_level_date": ""
+        }
+    ]
+}

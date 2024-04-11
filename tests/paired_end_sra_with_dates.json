@@ -1,0 +1,89 @@
+{
+    "primers": "swift",
+    "primer_version": "V1",
+    "recipe": "onecodex",
+    "output_path": "/olson@patricbrc.org/PATRIC-QA/applications/App-SARS2Wastewater",output_file": "paired_end_with_dates_srr_writing_test_cases",
+    "output_file": "paired_end_with_dates_srr",
+    "srr_libs": [
+        {
+            "srr_accession": "SRR18541014",
+            "title": "",
+            "sample_id": "SRR18541014",
+            "primers": "swift",
+            "primer_version": "V1",
+            "sample_level_date": "04/01/2021"
+        },
+        {
+            "srr_accession": "SRR18541015",
+            "title": "",
+            "sample_id": "SRR18541015",
+            "primers": "swift",
+            "primer_version": "V1",
+            "sample_level_date": "04/01/2021"
+        },
+        {
+            "srr_accession": "SRR18543472",
+            "title": "",
+            "sample_id": "SRR18543472",
+            "primers": "swift",
+            "primer_version": "V1",
+            "sample_level_date": "03/31/2021"
+        },
+        {
+            "srr_accession": "SRR18543473",
+            "title": "",
+            "sample_id": "SRR18543473",
+            "primers": "swift",
+            "primer_version": "V1",
+            "sample_level_date": "03/31/2021"
+        },
+        {
+            "srr_accession": "SRR18543475",
+            "title": "",
+            "sample_id": "SRR18543475",
+            "primers": "swift",
+            "primer_version": "V1",
+            "sample_level_date": "03/03/2021"
+        },
+        {
+            "srr_accession": "SRR18543479",
+            "title": "",
+            "sample_id": "SRR18543479",
+            "primers": "swift",
+            "primer_version": "V1",
+            "sample_level_date": "03/23/2021"
+        },
+        {
+            "srr_accession": "SRR18543565",
+            "title": "",
+            "sample_id": "SRR18543565",
+            "primers": "swift",
+            "primer_version": "V1",
+            "sample_level_date": "04/07/2021"
+        },
+        {
+            "srr_accession": "SRR18543566",
+            "title": "",
+            "sample_id": "SRR18543566",
+            "primers": "swift",
+            "primer_version": "V1",
+            "sample_level_date": "04/07/2021"
+        },
+        {
+            "srr_accession": "SRR18543567",
+            "title": "",
+            "sample_id": "SRR18543567",
+            "primers": "swift",
+            "primer_version": "V1",
+            "sample_level_date": "04/05/2021"
+        },
+        {
+            "srr_accession": "SRR18543568",
+            "title": "",
+            "sample_id": "SRR18543568",
+            "primers": "swift",
+            "primer_version": "V1",
+            "sample_level_date": "04/03/2021"
+        }
+    ]
+}
