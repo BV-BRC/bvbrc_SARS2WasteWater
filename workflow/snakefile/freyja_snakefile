@@ -167,7 +167,8 @@ rule sample_freyja_vis:
     input:
         # Freyja aggregate command expects a directory not the demixing results files themselves
         # adding the demxing results to help multi threading track the order
-        freyja_file = "output/{sample}/freyja/{sample}_freyja_result.tsv"
+        freyja_file = "output/{sample}/freyja/{sample}_freyja_result.tsv",
+	tmp_freyja_file = "tmp/{sample}_freyja_result.tsv"
     params:
         freyja_dir = directory("output/{sample}/freyja/"),
         cl_agg_dir = directory("clean_up/single_aggs/{sample}"),
