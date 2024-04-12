@@ -1,11 +1,10 @@
-## add something that checks if the file exisits then if it doesn't removes it from the table
 import pandas as pd
 import json
 
 msg = "snakefile command recieved - FREYJA AND POST PROCESSING \n"
 sys.stderr.write(msg)
 
-ruleorder: freyja_demix > sample_freyja_vis > clean_up_fastqc_zip
+ruleorder: freyja_demix > sample_freyja_vis > clean_up_fastqc_zip_pe > clean_up_fastqc_zip_se
 ### Define wildcards ###
 pe_zpd_samples = glob_wildcards("staging/pe_reads/{sample}_R{read_num}.fastq.gz").sample
 pe_unzpd_samples = glob_wildcards("staging/pe_reads/{sample}_R{read_num}.fastq").sample
@@ -56,7 +55,6 @@ minimum_genome_coverage_val = config["params"]["minimum_genome_coverage"]
 ### freyja plot variables ###
 agg_minimum_lineage_abundance_val = config["params"]["agg_minimum_lineage_abundance"]
 
-
 # Load the JSON data
 with open("config.json") as f:
     data = json.load(f)
@@ -92,10 +90,16 @@ rule_all_list = [
         expand("output/{sample}/freyja/{sample}_freyja_variants.tsv", sample=samples),
         expand("output/{sample}/freyja/{sample}_freyja_result.tsv", sample=samples),
         expand("output/{sample}/{sample}_variant_plot.png", sample=samples),
-        expand("clean_up/single_aggs/{sample}/{sample}_R1_fastqc.zip", sample=samples),
-        expand("clean_up/single_aggs/{sample}/{sample}_R2_fastqc.zip", sample=samples)
     ]
 
+### append clean up rule for fastQC zip to rule all depending on the paired reads vs single end reads ###
+pe_samples = pe_zpd_samples + pe_unzpd_samples
+se_samples = se_zpd_samples + se_unzpd_samples
+if len(pe_samples) > 0:
+        rule_all_list.append(expand("clean_up/{pe_sample}/fastqc_results/{pe_sample}_R1_fastqc.zip", pe_sample=pe_samples))
+        rule_all_list.append(expand("clean_up/{pe_sample}/fastqc_results/{pe_sample}_R2_fastqc.zip", pe_sample=pe_samples))
+if len(se_samples) >0:
+    rule_all_list.append(expand("clean_up/{se_sample}/fastqc/{se_sample}_fastqc.zip", se_sample=se_samples))
 
 rule all:
     input:
@@ -163,7 +167,8 @@ rule sample_freyja_vis:
     input:
         # Freyja aggregate command expects a directory not the demixing results files themselves
         # adding the demxing results to help multi threading track the order
-        freyja_file = "output/{sample}/freyja/{sample}_freyja_result.tsv"
+        freyja_file = "output/{sample}/freyja/{sample}_freyja_result.tsv",
+	tmp_freyja_file = "tmp/{sample}_freyja_result.tsv"
     params:
         freyja_dir = directory("output/{sample}/freyja/"),
         cl_agg_dir = directory("clean_up/single_aggs/{sample}"),
@@ -205,17 +210,46 @@ rule sample_freyja_vis:
 
         mv {params.single_aggregate} {output.clean_single_aggregate}
         """
-rule clean_up_fastqc_zip:
+
+rule clean_up_fastqc_zip_se:
     input:
-        zip_path_R1 = "output/{sample}/fastqc_results/{sample}_R1_fastqc.zip",
-        zip_path_R2 = "output/{sample}/fastqc_results/{sample}_R2_fastqc.zip"
+        zip_path = "output/{se_sample}/fastqc_results/{se_sample}_fastqc.zip",
+        ivar_zip_path = "output/{se_sample}/fastqc_results/{se_sample}.ivar_fastqc.zip",
+        sorted_zip_path = "output/{se_sample}/fastqc_results/{se_sample}.sorted_fastqc.zip",
     params:
-        cl_agg_dir = directory("clean_up/fastqc/{sample}")
+        cl_agg_dir = directory("clean_up/fastqc/{se_sample}")
     output:
-        clean_fastqc_zip_R1 = "clean_up/single_aggs/{sample}/{sample}_R1_fastqc.zip",
-        clean_fastqc_zip_R2 = "clean_up/single_aggs/{sample}/{sample}_R2_fastqc.zip"
+        clean_zip = "clean_up/{se_sample}/fastqc/{se_sample}_fastqc.zip",
+        clean_ivar_zip_path = "clean_up/{se_sample}/fastqc/{se_sample}.ivar_fastqc.zip",
+        clean_sorted_zip_path = "clean_up/{se_sample}/fastqc/{se_sample}.sorted_fastqc.zip",
     shell:
         """
-        mv {input.zip_path_R1} {output.clean_fastqc_zip_R1}
-        mv {input.zip_path_R2} {output.clean_fastqc_zip_R2}
+        mkdir -p {params.cl_agg_dir}
+
+        mv {input.zip_path} {output.clean_zip}
+        mv {input.ivar_zip_path} {output.clean_ivar_zip_path}
+        mv {input.sorted_zip_path} {output.clean_sorted_zip_path}
+        """
+
+rule clean_up_fastqc_zip_pe:
+    input:
+        zip_path_R1 = "output/{pe_sample}/fastqc_results/{pe_sample}_R1_fastqc.zip",
+        zip_path_R2 = "output/{pe_sample}/fastqc_results/{pe_sample}_R2_fastqc.zip",
+        ivar_zip_path = "output/{pe_sample}/fastqc_results/{pe_sample}.ivar_fastqc.zip",
+        sorted_zip_path = "output/{pe_sample}/fastqc_results/{pe_sample}.sorted_fastqc.zip",
+    params:
+        cl_agg_dir = directory("clean_up/{pe_sample}/fastqc_results/")
+    output:
+        clean_zip_R1 = "clean_up/{pe_sample}/fastqc_results/{pe_sample}_R1_fastqc.zip",
+        clean_zip_R2 = "clean_up/{pe_sample}/fastqc_results/{pe_sample}_R2_fastqc.zip",
+        clean_ivar_zip_path = "clean_up/{pe_sample}/fastqc_results/{pe_sample}.ivar_fastqc.zip",
+        clean_sorted_zip_path = "clean_up/{pe_sample}/fastqc_results/{pe_sample}.sorted_fastqc.zip",
+    shell:
+        """
+        mkdir -p {params.cl_agg_dir}
+
+        mv {input.zip_path_R1} {output.clean_zip_R1}
+        mv {input.zip_path_R2} {output.clean_zip_R2}
+        mv {input.ivar_zip_path} {output.clean_ivar_zip_path}
+        mv {input.sorted_zip_path} {output.clean_sorted_zip_path}
         """

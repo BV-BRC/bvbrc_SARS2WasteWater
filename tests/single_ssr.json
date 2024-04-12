@@ -1,41 +1,57 @@
 {
     "primers": "ARTIC",
     "primer_version": "V3",
-    "timeseries_plot_interval": "D",
     "recipe": "onecodex",
-    "scientific_name": "2697049",
-    "tax_id": "2697049",
-    "my_label": "single_end_srr",
-    "code": [
-        "1",
-        "1"
-    ],
-    "output_path": "/nbowers@bvbrc/home/kicking_the_tires/dev_covid_waste_water/pre_alpha_tests",
-    "output_file": "2Severe acute respiratory syndrome coronavirus 2 single_end_srr",
+    "output_path": "/olson@patricbrc.org/PATRIC-QA/applications/App-SARS2Wastewater",
+    "output_file": "paired_end_with_dates_srr_writing_test_cases",
     "srr_libs": [
         {
             "srr_accession": "SRR23056212",
+            "sample_level_date": "",
             "title": "",
             "sample_id": "SRR23056212",
             "primers": "ARTIC",
-            "primer_version": "V3",
-            "sample_level_date": "01/01/2021"
-        },
-        {
-            "srr_accession": "SRR23056213",
+            "primer_version": "V3"
+          },
+          {
+            "srr_accession": "SRR23055979",
+            "sample_level_date": "",
             "title": "",
+            "primer_version": "V3",
+            "primers": "ARTIC",
+            "sample_id": "SRR23055979"
+          },
+          {
             "sample_id": "SRR23056213",
             "primers": "ARTIC",
             "primer_version": "V3",
-            "sample_level_date": "01/02/2021"
-        },
-        {
-            "srr_accession": "SRR23056214",
             "title": "",
+            "sample_level_date": "",
+            "srr_accession": "SRR23056213"
+          },
+          {
             "sample_id": "SRR23056214",
+            "title": "",
+            "sample_level_date": "",
+            "primers": "ARTIC",
+            "srr_accession": "SRR23056214",
+            "primer_version": "V3"
+          },
+          {
+            "title": "",
+            "sample_level_date": "",
+            "srr_accession": "SRR23056215",
             "primers": "ARTIC",
             "primer_version": "V3",
-            "sample_level_date": "01/03/2021"
-        }
+            "sample_id": "SRR23056215"
+          },
+          {
+            "sample_id": "SRR23056216",
+            "title": "",
+            "srr_accession": "SRR23056216",
+            "primers": "ARTIC",
+            "primer_version": "V3",
+            "sample_level_date": ""
+          }
     ]
 }

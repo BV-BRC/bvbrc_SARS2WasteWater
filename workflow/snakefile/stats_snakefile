@@ -48,10 +48,12 @@ primer_version = config["params"]["primer_version"]
 
 
 rule_all_list = [
-        expand("output/multisample_variants_plot.png", sample=samples),
         "output/multiqc_report.html",
         "output/version_log.txt",
-        "output/job_stats.csv"
+        "output/job_stats.tsv",
+        "output/freyja_result.tsv",
+        "output/variants_plot.png",
+        "output/lineage_plot.png"
 ]
 # If dates are passed, check if metadata.csv is exists then make the time series plots
 if os.path.exists("sample_time_metadata.csv"):
@@ -59,19 +61,6 @@ if os.path.exists("sample_time_metadata.csv"):
     # add time series plot to rule all
     rule_all_list.append("output/variants_by_month_plot.png")
     rule_all_list.append("output/lineages_by_month_plot.png")
-
-
-## Add Multisample rules to rule all ##
-print(samples)
-print(set(samples))
-if len(set(samples)) != 1:
-    rule_all_list.append("output/multisample_freyja_result.tsv")
-    rule_all_list.append("output/multisample_variants_plot.png")
-    rule_all_list.append("output/multisample_lineage_plot.png")
-else:
-    msg = f"Only one sample. Not producing multisample outputs"
-    sys.stderr.write(msg)
-    pass
 
 rule all:
     input:
@@ -88,7 +77,7 @@ rule set_aggregate_command:
         tmp_dir = directory("tmp/"),
         ext = "_freyja_result.tsv ",
     output:
-        aggregated = "output/multisample_freyja_result.tsv",
+        aggregated = "output/freyja_result.tsv",
     shell:
         """
         freyja aggregate \
@@ -98,7 +87,7 @@ rule set_aggregate_command:
         """
 rule set_freyja_variant_vis:
     input:
-        set_agg = "output/multisample_freyja_result.tsv"
+        set_agg = "output/freyja_result.tsv"
     params:
         # for snakemake the directory needs to end with "/"
         tmp_dir = directory("tmp/"),
@@ -107,7 +96,7 @@ rule set_freyja_variant_vis:
         minimum_genome_coverage = minimum_genome_coverage_val,
         agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val
     output:
-        summarized_plot = "output/multisample_variants_plot.png",
+        summarized_plot = "output/variants_plot.png",
     shell:
         """
         freyja plot \
@@ -122,7 +111,7 @@ rule set_freyja_lineage_vis:
     input:
         # Using the tmp message file incase a sample files to stil populate even if some samples fail
         # Using set to ensure all files try to run demix. Then use any availble demix results.
-        aggregated = "output/multisample_freyja_result.tsv"
+        aggregated = "output/freyja_result.tsv"
     params:
         # for snakemake the directory needs to end with "/"
         tmp_dir = directory("tmp/"),
@@ -131,7 +120,7 @@ rule set_freyja_lineage_vis:
         minimum_genome_coverage = minimum_genome_coverage_val,
         agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val
     output:
-        lineage_plot = "output/multisample_lineage_plot.png",
+        lineage_plot = "output/lineage_plot.png",
     shell:
         """
 
@@ -146,7 +135,7 @@ rule set_freyja_lineage_vis:
 
 rule set_timeseries_plot:
     input:
-        aggregated = "output/multisample_freyja_result.tsv",
+        aggregated = "output/freyja_result.tsv",
     params:
         #the directory needs to end with "/"
         tmp_dir = directory("tmp/"),
@@ -187,7 +176,7 @@ rule set_timeseries_plot:
 
 rule set_lineages_timeseries_plot:
     input:
-        aggregated = "output/multisample_freyja_result.tsv",
+        aggregated = "output/freyja_result.tsv",
     params:
         #the directory needs to end with "/"
         tmp_dir = directory("tmp/"),
@@ -279,8 +268,8 @@ rule run_stats_report:
     params:
         prep_results_path = os.path.join(workflow_dir, 'scripts/prep_results.py')
     output:
-        results_csv = "output/job_stats.csv"
+        results_tsv = "output/job_stats.tsv"
     shell:
         """
-        python3 {params.prep_results_path} {output.results_csv}
+        python3 {params.prep_results_path} {output.results_tsv}
         """

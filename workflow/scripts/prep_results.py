@@ -65,9 +65,9 @@ def complile_stats(path):
         # Every line in the assembly stats becomes a new column with the parsed value for that sample in the row
             for key, value in assembly_stats.items():
                 df_samples.at[idx, key] = value
-        if os.path.exists(f'output/{sample_id}/{sample_id}_freyja_result.tsv'):
+        if os.path.exists(f'output/{sample_id}/freyja/{sample_id}_freyja_result.tsv'):
             df_samples['Freyja - Analysis'][idx] = "Complete"
-        if os.path.exists(f'output/{sample_id}/{sample_id}_lineage_plot.png'):
+        if os.path.exists(f'output/{sample_id}/freyja/{sample_id}_lineage_plot.png'):
             df_samples['Freyja - Visualization'][idx] = "Complete"
         # clean up primer path only show the bed file and remove the path
         df_samples['primers'][idx] = get_last_segment(df_samples['primers'][idx])
@@ -102,7 +102,7 @@ def complile_stats(path):
 
 
     # write out to CSV - without the index column
-    df_samples.to_csv(path, index = False)
+    df_samples.to_csv(path, index = False, sep="\t")
 
 
 @click.command()
