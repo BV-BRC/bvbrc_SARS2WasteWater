@@ -2,7 +2,8 @@
     "primers": "swift",
     "primer_version": "V1",
     "recipe": "onecodex",
-    "output_path": "/olson@patricbrc.org/PATRIC-QA/applications/App-SARS2Wastewater",output_file": "paired_end_with_dates_srr_writing_test_cases",
+    "output_path": "/olson@patricbrc.org/PATRIC-QA/applications/App-SARS2Wastewater",
+    "output_file": "paired_end_with_dates_srr_writing_test_cases",
     "output_file": "paired_end_with_dates_srr",
     "srr_libs": [
         {
