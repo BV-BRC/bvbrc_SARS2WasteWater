@@ -52,14 +52,14 @@ def complile_stats(path):
 
     # make a dataframe with one row for each clean sample id
     df_samples = pd.DataFrame(modified_wildcards, columns=['sampleID'])
-    df_samples['assembly - complete'] = "Incomplete"
+    df_samples['Assembly'] = "Incomplete"
     df_samples['Freyja - Analysis'] = "Incomplete"
     df_samples['Freyja - Visualization'] = "Incomplete"
 
     # # Step 3: Check the existence of output files and update the dataframe
     for sample_id, idx in zip(df_samples['sampleID'], df_samples.index):
         if os.path.getsize(f'output/{sample_id}/assembly/{sample_id}.statistics.tsv') != "Incomplete":
-            df_samples['assembly - complete'][idx] = "Complete"
+            df_samples['Assembly'][idx] = "Complete"
         ## parse the assembly stats file ##
             assembly_stats = parse_assembly_stats_file(f'output/{sample_id}/assembly/{sample_id}.statistics.tsv')
         # Every line in the assembly stats becomes a new column with the parsed value for that sample in the row
@@ -67,7 +67,7 @@ def complile_stats(path):
                 df_samples.at[idx, key] = value
         if os.path.exists(f'output/{sample_id}/freyja/{sample_id}_freyja_result.tsv'):
             df_samples['Freyja - Analysis'][idx] = "Complete"
-        if os.path.exists(f'output/{sample_id}/freyja/{sample_id}_lineage_plot.png'):
+        if os.path.exists(f'output/{sample_id}/freyja/{sample_id}_lineage_plot.svg'):
             df_samples['Freyja - Visualization'][idx] = "Complete"
         # clean up primer path only show the bed file and remove the path
         df_samples['primers'][idx] = get_last_segment(df_samples['primers'][idx])
@@ -81,7 +81,7 @@ def complile_stats(path):
 
     df_samples = df_samples[[
     "sampleID",
-    "assembly - complete",
+    "Assembly",
     "Freyja - Analysis",
     "Freyja - Visualization",
     "depth_mean",
@@ -100,7 +100,15 @@ def complile_stats(path):
     "primer_trim_pct",
     "variant_count"]]
 
-
+    # rename columns
+    df_samples.rename(columns = {"sampleID":"Sample ID", "depth_mean":"Depth Mean", \
+                                "depth_median":"Depth Median", "depth_stdv": "Depth Standard Deviation", \
+                                "depth_min":"Depth Minimum", "depth_max":"Depth Maximum", \
+                                "n_count":"Total N Count", "n_blocks":"N Blocks", \
+                                "fasta_length":"Fasta Length", "primers":"Primers", \
+                                "primer_count":"Primer Count","mapped_reads":"Mapped Reads",
+                                "unmapped_reads":"Unmapped Reads","primer_trim_count":"Primer Trim Count", \
+                                "primer_trim_pct":"Percentage of Primers Trimmed","variant_count":"Variant Count" }, inplace = True)
     # write out to CSV - without the index column
     df_samples.to_csv(path, index = False, sep="\t")
 
