@@ -89,7 +89,8 @@ with open("config.json") as f:
 rule_all_list = [
         expand("output/{sample}/freyja/{sample}_freyja_variants.tsv", sample=samples),
         expand("output/{sample}/freyja/{sample}_freyja_result.tsv", sample=samples),
-        expand("output/{sample}/{sample}_variant_plot.png", sample=samples),
+        expand("output/{sample}/{sample}_variant_plot.svg", sample=samples),
+        expand("assembly_images/{sample}.png", sample=samples)
     ]
 
 ### append clean up rule for fastQC zip to rule all depending on the paired reads vs single end reads ###
@@ -105,6 +106,19 @@ rule all:
     input:
         rule_all_list
 
+rule copy_assembly_images_for_report:
+    input:
+        assembly_image = "output/{sample}/assembly/{sample}.png"
+    params:
+        image_dir = "assembly_images"
+    output:
+        assembly_images = "assembly_images/{sample}.png"
+    shell:
+        """
+        mkdir -p {params.image_dir}
+
+        cp {input.assembly_image} {output.assembly_images}
+        """
 rule freyja_variants:
     input:
         ivar_bam_sorted = "output/{sample}/assembly/{sample}.sorted.bam",
@@ -180,8 +194,8 @@ rule sample_freyja_vis:
         variant_plot_msg = "tmp/{sample}_sample_variant_plot_error.txt",
         lineage_plot_msg = "tmp/{sample}_sample_lineage_plot_error.txt"
     output:
-        plot = "output/{sample}/{sample}_variant_plot.png",
-        lineage_plot = "output/{sample}/{sample}_lineage_plot.png",
+        plot = "output/{sample}/{sample}_variant_plot.svg",
+        lineage_plot = "output/{sample}/{sample}_lineage_plot.svg",
         clean_single_aggregate = "clean_up/single_aggs/{sample}/{sample}_aggregated_result.tsv",
     shell:
         """
