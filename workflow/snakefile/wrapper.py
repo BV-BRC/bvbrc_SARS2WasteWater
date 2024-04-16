@@ -89,7 +89,7 @@ def post_processing_check(all_sample_ids, output_dir):
     for sample_name in all_sample_ids: 
         # missing demix results
         # check for missing demix results
-        freyja_path = f"{output_dir}/{sample_name}/{sample_name}_demixing_result.csv"
+        freyja_path = f"{output_dir}/{sample_name}/freyja/{sample_name}_freyja_result.tsv"
         if os.path.isfile(freyja_path) == True:
             msg = f"{sample_name}"
             complete.append(msg)
