@@ -107,9 +107,8 @@ rule all:
         rule_all_list
 
 rule copy_assembly_images_for_report:
-    input:
-        assembly_image = "output/{sample}/assembly/{sample}.png"
     params:
+        assembly_image = "output/{sample}/assembly/{sample}.png",
         image_dir = "assembly_images"
     output:
         assembly_images = "assembly_images/{sample}.png"
@@ -117,7 +116,7 @@ rule copy_assembly_images_for_report:
         """
         mkdir -p {params.image_dir}
 
-        cp {input.assembly_image} {output.assembly_images}
+        cp {params.assembly_image} {output.assembly_images}
         """
 rule freyja_variants:
     input:
