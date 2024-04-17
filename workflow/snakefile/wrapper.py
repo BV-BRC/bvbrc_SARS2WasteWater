@@ -284,6 +284,11 @@ def run_snakefiles(input_dict, input_dir, output_dir,  config):
     if freyja_check == True:
         msg = "Wastewater Analysis is complete \n"
         sys.stderr.write(msg)
+    # create the HTML report 
+    script_dir = f"{config['workflow_dir']}/scripts/"
+    write_report = os.path.join(script_dir, "write_html_report.py")
+    cmd = ["python3", write_report]
+    subprocess.run(cmd)
     return
 
 
