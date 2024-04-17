@@ -67,7 +67,7 @@ def complile_stats(path):
                 df_samples.at[idx, key] = value
         if os.path.exists(f'output/{sample_id}/freyja/{sample_id}_freyja_result.tsv'):
             df_samples['Freyja - Analysis'][idx] = "Complete"
-        if os.path.exists(f'output/{sample_id}/freyja/{sample_id}_lineage_plot.svg'):
+        if os.path.exists(f'output/{sample_id}/{sample_id}_lineage_plot.svg'):
             df_samples['Freyja - Visualization'][idx] = "Complete"
         # clean up primer path only show the bed file and remove the path
         df_samples['primers'][idx] = get_last_segment(df_samples['primers'][idx])

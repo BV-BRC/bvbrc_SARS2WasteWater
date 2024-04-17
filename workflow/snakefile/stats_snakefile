@@ -38,6 +38,7 @@ workflow_dir = config["workflow_dir"]
 barcodes_path = config["barcodes_path"]
 curated_lineages = config["curated_lineages_path"]
 lineages = config["lineages_path"]
+last_barcode_update = config["last_barcode_update"]
 ### freyja aggregate variables ###
 minimum_genome_coverage_val = config["params"]["minimum_genome_coverage"]
 ### freyja plot variables ###
@@ -52,15 +53,15 @@ rule_all_list = [
         "output/version_log.txt",
         "output/job_stats.tsv",
         "output/freyja_result.tsv",
-        "output/variants_plot.svg",
-        "output/lineage_plot.svg"
+        "output/plots/variants_plot.svg",
+        "output/plots/lineage_plot.svg"
 ]
 # If dates are passed, check if metadata.csv is exists then make the time series plots
 if os.path.exists("sample_time_metadata.csv"):
     time_metadata_csv = "sample_time_metadata.csv"
     # add time series plot to rule all
-    rule_all_list.append("output/variants_by_month_plot.svg")
-    rule_all_list.append("output/lineages_by_month_plot.svg")
+    rule_all_list.append("output/plots/variants_by_month_plot.svg")
+    rule_all_list.append("output/plots/lineages_by_month_plot.svg")
 
 rule all:
     input:
@@ -96,7 +97,7 @@ rule set_freyja_variant_vis:
         minimum_genome_coverage = minimum_genome_coverage_val,
         agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val
     output:
-        summarized_plot = "output/variants_plot.svg",
+        summarized_plot = "output/plots/variants_plot.svg",
     shell:
         """
         freyja plot \
@@ -120,7 +121,7 @@ rule set_freyja_lineage_vis:
         minimum_genome_coverage = minimum_genome_coverage_val,
         agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val
     output:
-        lineage_plot = "output/lineage_plot.svg",
+        lineage_plot = "output/plots/lineage_plot.svg",
     shell:
         """
 
@@ -147,9 +148,9 @@ rule set_timeseries_plot:
         edited_metadata_csv = "edited_sample_time_metadata.csv",
         edit_time_metadata = os.path.join(workflow_dir, "scripts/edit_time_metadata_csv.py")
     output:
-        day_plot = "output/variants_by_day_plot.svg",
-        week_plot = "output/variants_by_week_plot.svg",
-        month_plot = "output/variants_by_month_plot.svg"
+        day_plot = "output/plots/variants_by_day_plot.svg",
+        week_plot = "output/plots/variants_by_week_plot.svg",
+        month_plot = "output/plots/variants_by_month_plot.svg"
 
     shell:
         """
@@ -188,9 +189,9 @@ rule set_lineages_timeseries_plot:
         edited_metadata_csv = "edited_sample_time_metadata.csv",
         edit_time_metadata = os.path.join(workflow_dir, "scripts/edit_time_metadata_csv.py")
     output:
-        day_plot = "output/lineages_by_day_plot.svg",
-        week_plot = "output/lineages_by_week_plot.svg",
-        month_plot = "output/lineages_by_month_plot.svg"
+        day_plot = "output/plots/lineages_by_day_plot.svg",
+        week_plot = "output/plots/lineages_by_week_plot.svg",
+        month_plot = "output/plots/lineages_by_month_plot.svg"
 
     shell:
         """
@@ -242,10 +243,13 @@ rule multiqc:
         """
 
 rule write_out_versions:
-    output: version_log = "output/version_log.txt"
     params:
         primer_tp = primer_type,
-        primer_v = primer_version
+        primer_v = primer_version,
+        last_barcode_update_file = last_barcode_update
+    output: 
+        version_log = "output/version_log.txt",
+        barcode_version = "barcode_version.txt"
     shell:
         """
         echo "The results may vary depending on the version of Freyja, its dependences and the barcode file used. The barcode file is a .tsv file that is used in lineage-determination defined by the UShER global phylogenetic tree. We update the barcodes every two weeks.\n Below are the versions of the tools used in this analysis. \n" >> {output.version_log}
@@ -257,11 +261,13 @@ rule write_out_versions:
 
         echo "Barcode version:" >> {output.version_log}
 
-        echo usher --version >> {output.version_log}
+        cat {params.last_barcode_update_file} >> {output.version_log}
 
         ivar version >> {output.version_log}
 
         samtools version >> {output.version_log}
+
+        cat {params.last_barcode_update_file} >> {output.barcode_version}
         """
 
 rule run_stats_report:
