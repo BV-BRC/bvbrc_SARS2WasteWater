@@ -53,15 +53,15 @@ rule_all_list = [
         "output/version_log.txt",
         "output/job_stats.tsv",
         "output/freyja_result.tsv",
-        "output/variants_plot.svg",
-        "output/lineage_plot.svg"
+        "output/plots/variants_plot.svg",
+        "output/plots/lineage_plot.svg"
 ]
 # If dates are passed, check if metadata.csv is exists then make the time series plots
 if os.path.exists("sample_time_metadata.csv"):
     time_metadata_csv = "sample_time_metadata.csv"
     # add time series plot to rule all
-    rule_all_list.append("output/variants_by_month_plot.svg")
-    rule_all_list.append("output/lineages_by_month_plot.svg")
+    rule_all_list.append("output/plots/variants_by_month_plot.svg")
+    rule_all_list.append("output/plots/lineages_by_month_plot.svg")
 
 rule all:
     input:
@@ -97,7 +97,7 @@ rule set_freyja_variant_vis:
         minimum_genome_coverage = minimum_genome_coverage_val,
         agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val
     output:
-        summarized_plot = "output/variants_plot.svg",
+        summarized_plot = "output/plots/variants_plot.svg",
     shell:
         """
         freyja plot \
@@ -121,7 +121,7 @@ rule set_freyja_lineage_vis:
         minimum_genome_coverage = minimum_genome_coverage_val,
         agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val
     output:
-        lineage_plot = "output/lineage_plot.svg",
+        lineage_plot = "output/plots/lineage_plot.svg",
     shell:
         """
 
@@ -148,9 +148,9 @@ rule set_timeseries_plot:
         edited_metadata_csv = "edited_sample_time_metadata.csv",
         edit_time_metadata = os.path.join(workflow_dir, "scripts/edit_time_metadata_csv.py")
     output:
-        day_plot = "output/variants_by_day_plot.svg",
-        week_plot = "output/variants_by_week_plot.svg",
-        month_plot = "output/variants_by_month_plot.svg"
+        day_plot = "output/plots/variants_by_day_plot.svg",
+        week_plot = "output/plots/variants_by_week_plot.svg",
+        month_plot = "output/plots/variants_by_month_plot.svg"
 
     shell:
         """
@@ -189,9 +189,9 @@ rule set_lineages_timeseries_plot:
         edited_metadata_csv = "edited_sample_time_metadata.csv",
         edit_time_metadata = os.path.join(workflow_dir, "scripts/edit_time_metadata_csv.py")
     output:
-        day_plot = "output/lineages_by_day_plot.svg",
-        week_plot = "output/lineages_by_week_plot.svg",
-        month_plot = "output/lineages_by_month_plot.svg"
+        day_plot = "output/plots/lineages_by_day_plot.svg",
+        week_plot = "output/plots/lineages_by_week_plot.svg",
+        month_plot = "output/plots/lineages_by_month_plot.svg"
 
     shell:
         """

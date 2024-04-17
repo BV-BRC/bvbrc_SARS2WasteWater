@@ -25,8 +25,8 @@ def generate_html(output_html_path):
     assembly_table_headers, assembly_table_rows = generate_progress_table_html(assembly_progress_df)
     stats_table_headers, stats_table_rows = generate_table_html(stats_df)
     # Find standard plots 
-    lineage_plot = "output/lineage_plot.svg"
-    variant_plot = "output/variants_plot.svg"
+    lineage_plot = "output/plots/lineage_plot.svg"
+    variant_plot = "output/plots/variants_plot.svg"
     if os.path.exists(lineage_plot):
         standard_plot_svg_header = "<h3>Lineage and Variant Abundance by Sample</h4>"
         standard_plot_description = "<p>Below are stacked bar graphs showing the relative abundance of \
@@ -39,15 +39,15 @@ def generate_html(output_html_path):
         variant_svg = ""
         lineage_svg = ""
     # Time series plots - Day
-    lineage_day = "output/lineages_by_day_plot.svg"
-    variant_day = "output/variants_by_day_plot.svg"
+    lineage_day = "output/plots/lineages_by_day_plot.svg"
+    variant_day = "output/plots/variants_by_day_plot.svg"
     # Time series plots - Week
-    lineage_week = "output/lineages_by_week_plot.svg"
-    variant_week = "output/variants_by_week_plot.svg"
+    lineage_week = "output/plots/lineages_by_week_plot.svg"
+    variant_week = "output/plots/variants_by_week_plot.svg"
     print('updated week')
     # Time series plots - Month
-    lineage_month = "output/lineages_by_month_plot.svg"
-    variant_month = "output/variants_by_month_plot.svg"
+    lineage_month = "output/plots/lineages_by_month_plot.svg"
+    variant_month = "output/plots/variants_by_month_plot.svg"
     if os.path.exists(lineage_day):
         time_series_header = "<h3>Time Series Plots</h3>"
         day_plot_svg_header = "<h3>Lineage and Variant Abundance by Date</h4>"
