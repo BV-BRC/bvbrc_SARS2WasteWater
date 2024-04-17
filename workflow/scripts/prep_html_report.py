@@ -44,7 +44,6 @@ def generate_html(output_html_path):
     # Time series plots - Week
     lineage_week = "output/plots/lineages_by_week_plot.svg"
     variant_week = "output/plots/variants_by_week_plot.svg"
-    print('updated week')
     # Time series plots - Month
     lineage_month = "output/plots/lineages_by_month_plot.svg"
     variant_month = "output/plots/variants_by_month_plot.svg"
@@ -378,7 +377,7 @@ def find_assembly_plots(directory):
     assembly_plots = []
     for dirpath, dirnames, filenames in os.walk(directory):
         for filename in filenames:
-            if filename.lower().endswith('.detail.png'):  # Ensures case insensitivity
+            if filename.lower().endswith('detail.png'):  # Ensures case insensitivity
                 full_path = os.path.join(dirpath, filename)
                 assembly_plots.append(full_path)
     return assembly_plots

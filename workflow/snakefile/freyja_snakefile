@@ -90,7 +90,7 @@ rule_all_list = [
         expand("output/{sample}/freyja/{sample}_freyja_variants.tsv", sample=samples),
         expand("output/{sample}/freyja/{sample}_freyja_result.tsv", sample=samples),
         expand("output/{sample}/{sample}_variant_plot.svg", sample=samples),
-        expand("assembly_images/{sample}.png", sample=samples)
+        expand("assembly_images/{sample}.detail.png", sample=samples)
     ]
 
 ### append clean up rule for fastQC zip to rule all depending on the paired reads vs single end reads ###
@@ -108,10 +108,10 @@ rule all:
 
 rule copy_assembly_images_for_report:
     params:
-        assembly_image = "output/{sample}/assembly/{sample}.png",
+        assembly_image = "output/{sample}/assembly/{sample}.detail.png",
         image_dir = "assembly_images"
     output:
-        assembly_images = "assembly_images/{sample}.png"
+        assembly_images = "assembly_images/{sample}.detail.png"
     shell:
         """
         mkdir -p {params.image_dir}
