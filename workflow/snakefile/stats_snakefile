@@ -38,6 +38,7 @@ workflow_dir = config["workflow_dir"]
 barcodes_path = config["barcodes_path"]
 curated_lineages = config["curated_lineages_path"]
 lineages = config["lineages_path"]
+last_barcode_update = config["last_barcode_update"]
 ### freyja aggregate variables ###
 minimum_genome_coverage_val = config["params"]["minimum_genome_coverage"]
 ### freyja plot variables ###
@@ -242,10 +243,13 @@ rule multiqc:
         """
 
 rule write_out_versions:
-    output: version_log = "output/version_log.txt"
     params:
         primer_tp = primer_type,
-        primer_v = primer_version
+        primer_v = primer_version,
+        last_barcode_update_file = last_barcode_update
+    output: 
+        version_log = "output/version_log.txt",
+        barcode_version = "barcode_version.txt"
     shell:
         """
         echo "The results may vary depending on the version of Freyja, its dependences and the barcode file used. The barcode file is a .tsv file that is used in lineage-determination defined by the UShER global phylogenetic tree. We update the barcodes every two weeks.\n Below are the versions of the tools used in this analysis. \n" >> {output.version_log}
@@ -257,11 +261,13 @@ rule write_out_versions:
 
         echo "Barcode version:" >> {output.version_log}
 
-        echo usher --version >> {output.version_log}
+        cat {params.last_barcode_update_file} >> {output.version_log}
 
         ivar version >> {output.version_log}
 
         samtools version >> {output.version_log}
+
+        cat {params.last_barcode_update_file} >> {output.barcode_version}
         """
 
 rule run_stats_report:

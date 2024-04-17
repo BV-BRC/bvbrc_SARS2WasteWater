@@ -27,28 +27,6 @@ sub run_app
 	process_read_input($app, $params);
 }
 
-# sub job_failed_exists {
-#     my($app, $output) = @_;
-#     my $job_failed_txt = shift;
-#     # save files to workspace even if the job failed exisits
-#     save_output_files($app, $output);
-#     if (-e $job_failed_txt) {
-#         print "File '$job_failed_txt' exists. Uploading to workspace \n";
-#          my @cmd = ("p3-cp", "ws:" . $app->result_folder);
-# 	    print STDERR "saving files to workspace... @cmd\n";
-# 	    my $ok = IPC::Run::run(\@cmd);
-# 	    if (!$ok)
-# 	    {
-# 		warn "Error $? copying output with @cmd\n";
-# 	    }
-#         return 1;  # File exists
-#     } else {
-#         print "File '$job_failed_txt' does not exist. Uploading all results in the output directory \n";
-#         # save_output_files($app, $output);
-#         return 0;  # File does not exist
-#     }
-# }
-
 sub process_read_input
 {
     my($app, $params) = @_;
@@ -145,6 +123,7 @@ sub process_read_input
     my $barcodes_path = "$data_dir/usher_barcodes.csv";
     my $curated_lineages_path = "$data_dir/curated_lineages.json";
     my $lineages_path = "$data_dir/lineages.yml";
+    my $last_barcode_update = "$data_dir/last_barcode_update.txt";
 
     my $wf_dir = "$ENV{KB_TOP}/workflows/$ENV{KB_MODULE_DIR}";
     if (! -d $wf_dir)
@@ -161,6 +140,7 @@ sub process_read_input
     $config_vars{barcodes_path} = $barcodes_path;
     $config_vars{curated_lineages_path} = $curated_lineages_path;
     $config_vars{lineages_path} = $lineages_path;
+    $config_vars{last_barcode_update} = $last_barcode_update;
     $config_vars{staging_sample_metadata_path} = $staging_sample_metadata_path;
     $config_vars{workflow_dir} = $wf_dir;
     $config_vars{input_data_dir} = $staging;
