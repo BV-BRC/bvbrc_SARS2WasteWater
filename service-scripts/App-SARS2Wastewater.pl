@@ -207,8 +207,8 @@ sub save_output_files
         fasta => "contigs",
         html => 'html',
         out => 'txt',
-        txt => 'txt',
-        png => 'png',
+	png => 'png',
+ 	svg => 'svg',
         tsv => 'tsv',
         txt => 'txt',);
 
