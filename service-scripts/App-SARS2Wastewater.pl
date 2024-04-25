@@ -199,16 +199,18 @@ sub save_output_files
 {
     my($app, $output) = @_;
     my %suffix_map = (
-        bai => 'bai',
+        align => 'txt',
+	bai => 'bai',
         bam => 'bam',
         csv => 'csv',
-        depths => 'txt',
+        depth => 'txt',
         err => 'txt',
         fasta => "contigs",
         html => 'html',
         out => 'txt',
 	png => 'png',
  	svg => 'svg',
+  	tbl => 'tsv',
         tsv => 'tsv',
         txt => 'txt',);
 
