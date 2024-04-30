@@ -41,7 +41,7 @@ def generate_html(output_html_path, workflow_dir):
     assembly_table_headers, assembly_table_rows = generate_progress_table_html(assembly_progress_df)
     stats_table_headers, stats_table_rows = generate_table_html(stats_df)
     # Find standard plots 
-    lineage_plot = "output/plots/lineage_plot.html"
+    lineage_plot = "output/plots/lineages_plot.html"
     variant_plot = "output/plots/variants_plot.html"
     if os.path.exists(lineage_plot):
         standard_plot_header = "<h3>Lineage and Variant Abundance by Sample</h4>"
