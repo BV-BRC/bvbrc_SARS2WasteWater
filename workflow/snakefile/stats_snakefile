@@ -53,15 +53,15 @@ rule_all_list = [
         "output/version_log.txt",
         "output/job_stats.tsv",
         "output/freyja_result.tsv",
-        "output/plots/variants_plot.svg",
-        "output/plots/lineage_plot.svg"
+        "output/plots/variants_plot.html",
+        "output/plots/lineages_plot.html"
 ]
 # If dates are passed, check if metadata.csv is exists then make the time series plots
 if os.path.exists("sample_time_metadata.csv"):
     time_metadata_csv = "sample_time_metadata.csv"
     # add time series plot to rule all
-    rule_all_list.append("output/plots/variants_by_month_plot.svg")
-    rule_all_list.append("output/plots/lineages_by_month_plot.svg")
+    rule_all_list.append("output/plots/variants_by_month_plot.html")
+    rule_all_list.append("output/plots/lineages_by_month_plot.html")
 
 rule all:
     input:
@@ -86,138 +86,56 @@ rule set_aggregate_command:
             --ext {params.ext} \
             --output {output.aggregated}
         """
-rule set_freyja_variant_vis:
-    input:
-        set_agg = "output/freyja_result.tsv"
-    params:
-        # for snakemake the directory needs to end with "/"
-        tmp_dir = directory("tmp/"),
-        ext = "_demixing_result.csv",
-        lineage_yml = lineages,
-        minimum_genome_coverage = minimum_genome_coverage_val,
-        agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val
-    output:
-        summarized_plot = "output/plots/variants_plot.svg",
-    shell:
-        """
-        freyja plot \
-            {input.set_agg} \
-            --lineageyml {params.lineage_yml} \
-            --mincov {params.minimum_genome_coverage} \
-            --thresh {params.agg_minimum_lineage_abundance} \
-            --output {output.summarized_plot}
-        """
 
-rule set_freyja_lineage_vis:
+rule set_freyja_vis:
     input:
         # Using the tmp message file incase a sample files to stil populate even if some samples fail
         # Using set to ensure all files try to run demix. Then use any availble demix results.
         aggregated = "output/freyja_result.tsv"
     params:
-        # for snakemake the directory needs to end with "/"
-        tmp_dir = directory("tmp/"),
-        ext = "_demixing_result.csv",
-        lineage_yml = lineages,
-        minimum_genome_coverage = minimum_genome_coverage_val,
-        agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val
+        sample_plots_script = os.path.join(workflow_dir, "scripts/sample_level_plots.py")
     output:
-        lineage_plot = "output/plots/lineage_plot.svg",
+        lineage_plot = "output/plots/lineages_plot.html",
+        variant_plot = "output/plots/variants_plot.html",
     shell:
         """
 
-        freyja plot \
-            {input.aggregated} \
-            --lineages \
-            --lineageyml {params.lineage_yml} \
-            --mincov {params.minimum_genome_coverage} \
-            --thresh {params.agg_minimum_lineage_abundance} \
-            --output {output.lineage_plot}
+    python3 {params.sample_plots_script} \
+        {input.aggregated} \
+        {output.lineage_plot} \
+        {output.variant_plot}
         """
 
 rule set_timeseries_plot:
     input:
         aggregated = "output/freyja_result.tsv",
     params:
-        #the directory needs to end with "/"
-        tmp_dir = directory("tmp/"),
-        ext = "_demixing_result.csv",
-        minimum_genome_coverage = minimum_genome_coverage_val,
-        agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val,
-        lineage_yml = lineages,
         metadata_csv = time_metadata_csv,
         edited_metadata_csv = "edited_sample_time_metadata.csv",
-        edit_time_metadata = os.path.join(workflow_dir, "scripts/edit_time_metadata_csv.py")
+        edit_time_metadata = os.path.join(workflow_dir, "scripts/edit_time_metadata_csv.py"),
+        plot_timedata = os.path.join(workflow_dir, "scripts/time_series_plots.py")
     output:
-        day_plot = "output/plots/variants_by_day_plot.svg",
-        week_plot = "output/plots/variants_by_week_plot.svg",
-        month_plot = "output/plots/variants_by_month_plot.svg"
-
+        variants_day_plot = "output/plots/variants_by_day_plot.html",
+        variants_week_plot = "output/plots/variants_by_week_plot.html",
+        variants_month_plot = "output/plots/variants_by_month_plot.html",
+        lineages_day_plot = "output/plots/lineages_by_day_plot.html",
+        lineages_week_plot = "output/plots/lineages_by_week_plot.html",
+        lineages_month_plot = "output/plots/lineages_by_month_plot.html"
     shell:
         """
-        python3 {params.edit_time_metadata}
+    python3 {params.edit_time_metadata}
 
-        freyja plot {input.aggregated} \
-            --lineageyml {params.lineage_yml} \
-            --times {params.edited_metadata_csv} \
-            --interval D \
-            --output {output.day_plot}
-
-        freyja plot {input.aggregated} \
-            --lineageyml {params.lineage_yml} \
-            --times {params.edited_metadata_csv} \
-            --interval W \
-            --output {output.week_plot}
-
-        freyja plot {input.aggregated} \
-            --lineageyml {params.lineage_yml} \
-            --times {params.edited_metadata_csv} \
-            --interval MS \
-            --output {output.month_plot}
+    python3 {params.plot_timedata} \
+        {input.aggregated} \
+        edited_sample_time_metadata.csv \
+        {output.lineages_day_plot} \
+        {output.variants_day_plot} \
+        {output.lineages_week_plot} \
+        {output.variants_week_plot} \
+        {output.lineages_month_plot} \
+        {output.variants_month_plot}
         """
 
-rule set_lineages_timeseries_plot:
-    input:
-        aggregated = "output/freyja_result.tsv",
-    params:
-        #the directory needs to end with "/"
-        tmp_dir = directory("tmp/"),
-        ext = "_demixing_result.csv",
-        lineage_yml = lineages,
-        minimum_genome_coverage = minimum_genome_coverage_val,
-        agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val,
-        metadata_csv = time_metadata_csv,
-        edited_metadata_csv = "edited_sample_time_metadata.csv",
-        edit_time_metadata = os.path.join(workflow_dir, "scripts/edit_time_metadata_csv.py")
-    output:
-        day_plot = "output/plots/lineages_by_day_plot.svg",
-        week_plot = "output/plots/lineages_by_week_plot.svg",
-        month_plot = "output/plots/lineages_by_month_plot.svg"
-
-    shell:
-        """
-        python3 {params.edit_time_metadata}
-
-        freyja plot {input.aggregated} \
-            --lineages \
-            --lineageyml {params.lineage_yml} \
-            --times {params.edited_metadata_csv} \
-            --interval D \
-            --output {output.day_plot}
-
-        freyja plot {input.aggregated} \
-            --lineages \
-            --lineageyml {params.lineage_yml} \
-            --times {params.edited_metadata_csv} \
-            --interval W \
-            --output {output.week_plot}
-
-        freyja plot {input.aggregated} \
-            --lineages \
-            --lineageyml {params.lineage_yml} \
-            --times {params.edited_metadata_csv} \
-            --interval MS \
-            --output {output.month_plot}
-        """
 
 rule multiqc:
     input:
