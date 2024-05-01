@@ -61,7 +61,6 @@ def get_variant_info(df):
 def plot_lineage_by_samples(df_lineages, sample_lineage_out):
     # Create a Plotly figure
     fig = go.Figure()
-    # # changes to atch below 
     # Add traces
     lineages = df_lineages['lineage'].unique()
     for i, lineage in enumerate(lineages):
@@ -77,8 +76,7 @@ def plot_lineage_by_samples(df_lineages, sample_lineage_out):
             name=lineage,
             marker_color=color,
             hoverinfo='y+name',
-            hovertemplate='<b>%{x}</b><br>%{y:.2f}%<br><b>%{data.name}</b><extra></extra>'  # Customize hovertext with HTML
-            # hoverlabel=dict(font_color='black')  # Set hover text color to black
+            hovertemplate='<b>%{x}</b><br>%{y:.2%}<br><b>%{data.name}</b><extra></extra>',
         ))
 
     # Update layout for a stacked bar chart
@@ -95,11 +93,10 @@ def plot_lineage_by_samples(df_lineages, sample_lineage_out):
         legend_title_font_size=16,
         legend_font_size=14,
         xaxis=dict(tickangle=-45, tickfont_size=16),
-        hoverlabel=dict(font_size=16, font_family="Arial")
+        hoverlabel=dict(font_size=16, font_family="Roboto"),
+        height=700,
     )
-
-    # Display the figure or save it as HTML
-    fig.write_html(sample_lineage_out)  # Save the interactive plot as an HTML file
+    fig.write_html(sample_lineage_out, include_plotlyjs=False)  # This plot will not work outside of the report
     return
 
 
@@ -118,7 +115,7 @@ def plot_variant_by_samples(df_variants, sample_variant_out):
             name=variant,
             marker_color=color,  # Set color from the palette
             hoverinfo='y+name',
-            hovertemplate='<b>%{x}</b><br>%{y:.2f}%<br><b>%{data.name}</b><extra></extra>'  # Customize hovertext with HTML
+            hovertemplate='<b>%{x}</b><br>%{y:.2%}<br><b>%{data.name}</b><extra></extra>'
         ))
 
     # Update layout for a stacked bar chart
@@ -135,12 +132,10 @@ def plot_variant_by_samples(df_variants, sample_variant_out):
         legend_title_font_size=16,
         legend_font_size=14,
         xaxis=dict(tickangle=-45),  # Rotate labels to -45 degrees
-        hoverlabel=dict(font_size=16, font_family="Arial")
+        hoverlabel=dict(font_size=16, font_family="Roboto"),
+        height=700
     )
-
-
-    # Display the figure in HTML or save it
-    fig.write_html(sample_variant_out)  # This saves the interactive plot as an HTML file
+    fig.write_html(sample_variant_out, include_plotlyjs=False)  # This plot will not work outside of the report
     return
 
 def main(argv):
@@ -148,8 +143,6 @@ def main(argv):
     freyja_results = argv[1]
     sample_lineage_out = argv[2]
     sample_variant_out = argv[3]
-    print(sample_lineage_out)
-    print(sample_variant_out)
 
     df = pd.read_csv(freyja_results, sep="\t")
     df.columns = ["sample", "summarized", "lineages", "abundances", "resid","coverage"]
@@ -157,11 +150,13 @@ def main(argv):
     df["sample"] = df["sample"].apply(lambda x: x.replace('_freyja_variants.tsv', ''))
     # lineages
     df_lineages = get_lineage_info(df)
+    # reduce file size by rounding
+    df_lineages["abundance"] = df_lineages["abundance"].round(3)
     plot_lineage_by_samples(df_lineages, sample_lineage_out)
     # variants
     df_variants = get_variant_info(df)
     plot_variant_by_samples(df_variants, sample_variant_out)
-    print("Stacked bar plots generated ")
+    print("Stample stacked bar plots generated ")
 
 if __name__ == "__main__":
     main(sys.argv)
