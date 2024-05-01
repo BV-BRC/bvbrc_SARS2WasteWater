@@ -45,7 +45,6 @@ def generate_table_html(df):
         f'<tr>{" ".join(f"<td>{row[column]}</td>" for column in df.columns)}</tr>'
         for _, row in df.iterrows()
     )
-    
     return headers, rows
 
 def image_to_base64(file_path):
@@ -94,7 +93,6 @@ def write_html_report(workflow_dir):
     bvbrc_logo_path = os.path.join(workflow_dir, "bv-brc-header-logo-bg.png")
     base64_string = image_to_base64(bvbrc_logo_path)
     bvbrc_logo_base64 = f'<div class="image-container"><img src="data:image/png;base64,{base64_string}" alt="Embedded Image"></div>'
-
     if os.path.exists("output/warning.txt"):
         warning_header="<h3>Analysis Warnings</h4>"
         # Read the warning text
@@ -120,7 +118,6 @@ def write_html_report(workflow_dir):
         if os.path.exists(lineage_plot) else
         ("", "", "", "")
     )
-
     # Time series plots - Day
     lineage_day = "plots/lineages_by_day_plot.html"
     variant_day = "plots/variants_by_day_plot.html"
@@ -136,7 +133,6 @@ def write_html_report(workflow_dir):
         if os.path.exists(lineage_day) else
         ("", "", "", "", "")
     )
-
     # Time series plots - Week
     lineage_week = "plots/lineages_by_week_plot.html"
     variant_week = "plots/variants_by_week_plot.html"
@@ -166,7 +162,6 @@ def write_html_report(workflow_dir):
         ("", "", "", "")
     )
     ### write the report HTML ###
-
     html_template = """
         <!DOCTYPE html>
         <html lang="en">
