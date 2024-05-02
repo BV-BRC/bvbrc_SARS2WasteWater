@@ -101,8 +101,8 @@ def write_html_report(workflow_dir):
     else:
         warning_header="<h3>Analysis Warnings</h4>"
         warning_text="No warnings were generated during your analysis."
-        # assembly plots
-        image_paths = find_assembly_plots("assembly_images")
+    # assembly plots
+    image_paths = find_assembly_plots("assembly_images")
     #set up the barcodes
     barcode_version=read_barcode_version("barcode_version.txt")
 
