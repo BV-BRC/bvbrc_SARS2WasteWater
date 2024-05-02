@@ -101,8 +101,8 @@ def write_html_report(workflow_dir):
     else:
         warning_header="<h3>Analysis Warnings</h4>"
         warning_text="No warnings were generated during your analysis."
-        # assembly plots
-        image_paths = find_assembly_plots("assembly_images")
+    # assembly plots
+    image_paths = find_assembly_plots("assembly_images")
     #set up the barcodes
     barcode_version=read_barcode_version("barcode_version.txt")
 
@@ -420,8 +420,8 @@ def write_html_report(workflow_dir):
             </div>
             <h3>References</h3>
             <ol>
-            <li>1.	Wattam AR, Davis JJ, Assaf R, Boisvert S, Brettin T, Bun C, Conrad N, Dietrich EM, Disz T, Gabbard JL, et al. 2017. Improvements to PATRIC, the all-bacterial Bioinformatics Database and Analysis Resource Center. Nucleic Acids Res 45:D535-D542.</a></li>
-            <ol>
+            <li>Wattam AR, Davis JJ, Assaf R, Boisvert S, Brettin T, Bun C, Conrad N, Dietrich EM, Disz T, Gabbard JL, et al. 2017. Improvements to PATRIC, the all-bacterial Bioinformatics Database and Analysis Resource Center. Nucleic Acids Res 45:D535-D542.</a></li>
+        
             <li>Etherington, G.J., R.H. Ramirez-Gonzalez, and D. MacLean, bio-samtools 2: a package for analysis and visualization of sequence and alignment data with SAMtools in Ruby. Bioinformatics, 2015. 31(15): p. 2565-2567.</a></li>
         
             <li>Grubaugh, N.D., Gangavarapu, K., Quick, J. et al. An amplicon-based sequencing framework for accurately measuring intrahost virus diversity using PrimalSeq and iVar. Genome Biol 20, 8 (2019). https://doi.org/10.1186/s13059-018-1618-7</a></li>
