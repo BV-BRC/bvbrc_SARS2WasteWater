@@ -1,5 +1,5 @@
 import click
-import glob
+import json
 import pandas as pd
 import os
 
@@ -19,44 +19,28 @@ def parse_assembly_stats_file(file_path):
     return parsed_values
 
 def complile_stats(path):
-    # Step 1: Get the sample IDs
-    # set up a structure like the snakemake wildcards
-    # make a list of the input files 
-    # single end unzipped
-    uz_se_file_list = glob.glob("staging/se_reads/*.fastq")
-    # single end zipped
-    z_se_file_list = glob.glob("staging/se_reads/*.fastq.gz")
-    # paired end unzipped
-    uz_pe_file_list = glob.glob("staging/pe_reads/*_R1.fastq")
-    # paired end zipped
-    z_pe_file_list = glob.glob("staging/pe_reads/*_R1.fastq.gz")
-    # all together now
-    file_list = uz_se_file_list + z_se_file_list + uz_pe_file_list + z_pe_file_list
+    # Step 1: get the sample ids from the config file 
+    with open('config.json', 'r') as file:
+        data = json.load(file)
 
+        # Extracting sample IDs from the "paired_end_libs" and "single_end_libs" lists
+        paired_end_sample_ids = [lib['sample_id'] for lib in data['params']['paired_end_libs']]
+        single_end_sample_ids = [lib['sample_id'] for lib in data['params']['single_end_libs']]
+        srr_sample_ids = [lib['sample_id'] for lib in data['params']['srr_libs']]
 
-    # Extract the wildcard part from each file path
-    wildcards = [os.path.basename(file_path).split('.')[0] for file_path in file_list]
+        # Combine all sample IDs into one list
+        all_sample_ids = paired_end_sample_ids + single_end_sample_ids + srr_sample_ids
 
-    modified_wildcards = []
-    # For each item in the input file list, remove read 1 so the sample ID is clean
-    for s in wildcards:
-        # Check if the string contains "_R1"
-        if '_R1' in s:
-            # If it does, remove "_R1"
-            modified_string = s.replace('_R1', '')
-        else:
-            modified_string = s
-        
-        # Append the modified string (clean sample ID) to the new list
-        modified_wildcards.append(modified_string)
+        unique_sample_ids = list(set(all_sample_ids))
+
 
     # make a dataframe with one row for each clean sample id
-    df_samples = pd.DataFrame(modified_wildcards, columns=['sampleID'])
+    df_samples = pd.DataFrame(unique_sample_ids, columns=['sampleID'])
     df_samples['Assembly'] = "Incomplete"
     df_samples['Freyja - Analysis'] = "Incomplete"
     df_samples['Freyja - Visualization'] = "Incomplete"
 
-    # # Step 3: Check the existence of output files and update the dataframe
+    # # Step 2: Check the existence of output files and update the dataframe
     for sample_id, idx in zip(df_samples['sampleID'], df_samples.index):
         if os.path.getsize(f'output/{sample_id}/assembly/{sample_id}.statistics.tsv') != "Incomplete":
             df_samples['Assembly'][idx] = "Complete"
@@ -65,6 +49,8 @@ def complile_stats(path):
         # Every line in the assembly stats becomes a new column with the parsed value for that sample in the row
             for key, value in assembly_stats.items():
                 df_samples.at[idx, key] = value
+        else:
+            df_samples['Assembly'] = "Incomplete"
         if os.path.exists(f'output/{sample_id}/freyja/{sample_id}_freyja_result.tsv'):
             df_samples['Freyja - Analysis'][idx] = "Complete"
         if os.path.exists(f'output/{sample_id}/{sample_id}_lineage_plot.svg'):
