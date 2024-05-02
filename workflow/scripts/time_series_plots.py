@@ -119,17 +119,17 @@ def day_variant_plot(merged_df, day_variant_out):
     # Update layout for a stacked bar chart
     fig.update_layout(
         barmode='stack',
-        title='Variant Percentages by Date',
+        title='Variant Abundance by Date',
         title_font_size=24,
         xaxis_title='Date',
         xaxis_title_font_size=18,
-        yaxis_title='Percentage',
+        yaxis_title='Abundance (%)',
         yaxis_title_font_size=18,
         yaxis=dict(tickformat=".0%", tickfont_size=16),
         legend_title='Variant',
         legend_title_font_size=16,
         legend_font_size=14,
-        xaxis=dict(tickangle=-45),  # Rotate labels to -45 degrees
+        xaxis=dict(tickangle=-45, tickfont_size=16),
         hoverlabel=dict(font_size=16, font_family="Arial"),
         height=700
         )
@@ -169,17 +169,17 @@ def lineage_day_plot(df, dates_df, day_lineage_out):
     # Update layout for a stacked bar chart
     fig.update_layout(
         barmode='stack',
-        title='Lineage Percentages by Date',
+        title='Lineage Abundance by Date',
         title_font_size=24,
         xaxis_title='Date',
         xaxis_title_font_size=18,
-        yaxis_title='Percentage',
+        yaxis_title='Abundance (%)',
         yaxis_title_font_size=18,
         yaxis=dict(tickformat=".0%", tickfont_size=16),
         legend_title='Lineage',
         legend_title_font_size=16,
         legend_font_size=14,
-        xaxis=dict(tickangle=-45),  # Rotate labels to -45 degrees
+        xaxis=dict(tickangle=-45, tickfont_size=16),
         hoverlabel=dict(font_size=16, font_family="Arial"),
         height=700
         )
@@ -218,17 +218,17 @@ def month_lineages_plot(df, dates_df, month_lineage_out):
     # Update layout for a stacked bar chart
     fig.update_layout(
         barmode='stack',
-        title='Lineage Percentages by Month',
+        title='Lineage Abundance by Month',
         title_font_size=24,
         xaxis_title='Month',
         xaxis_title_font_size=18,
-        yaxis_title='Percentage',
+        yaxis_title='Abundance (%)',
         yaxis_title_font_size=18,
         yaxis=dict(tickformat=".0%", tickfont_size=16),
         legend_title='Lineage',
         legend_title_font_size=16,
         legend_font_size=14,
-        xaxis=dict(tickangle=-45),  # Rotate labels to -45 degrees
+        xaxis=dict(tickangle=-45, tickfont_size=16),
         hoverlabel=dict(font_size=16, font_family="Arial"),
         height=700
         )
@@ -262,17 +262,17 @@ def month_variant_plot(df, dates_df, month_variant_out):
     # Update layout for a stacked bar chart
     fig.update_layout(
         barmode='stack',
-        title='Variant Percentages by Month',
+        title='Variant Abundance by Month',
         title_font_size=24,
         xaxis_title='Month',
         xaxis_title_font_size=18,
-        yaxis_title='Percentage',
+        yaxis_title='Abundance (%)',
         yaxis_title_font_size=18,
         yaxis=dict(tickformat=".0%", tickfont_size=16),
         legend_title='Variant',
         legend_title_font_size=16,
         legend_font_size=14,
-        xaxis=dict(tickangle=-45),  # Rotate labels to -45 degrees
+        xaxis=dict(tickangle=-45, tickfont_size=16),
         hoverlabel=dict(font_size=16, font_family="Arial"),
         height=700
         )
@@ -309,17 +309,17 @@ def week_lineages_plot(df, dates_df, week_lineage_out):
     # Update layout for a stacked bar chart
     fig.update_layout(
         barmode='stack',
-        title='Lineage Percentages by Week',
+        title='Lineage Abundance by Week',
         title_font_size=24,
         xaxis_title='Month',
         xaxis_title_font_size=18,
-        yaxis_title='Percentage',
+        yaxis_title='Abundance (%)',
         yaxis_title_font_size=18,
         yaxis=dict(tickformat=".0%", tickfont_size=16),
         legend_title='Lineage',
         legend_title_font_size=16,
         legend_font_size=14,
-        xaxis=dict(tickangle=-45),  # Rotate labels to -45 degrees
+        xaxis=dict(tickangle=-45, tickfont_size=16),
         hoverlabel=dict(font_size=16, font_family="Arial"),
         height=700
         )
@@ -359,17 +359,17 @@ def week_variant_plot(df, dates_df, week_variant_out):
     # Update layout for a stacked bar chart
     fig.update_layout(
         barmode='stack',
-        title='Variant Percentages by Week',
+        title='Variant Abundance by Week',
         title_font_size=24,
         xaxis_title='Epiweek',
         xaxis_title_font_size=18,
-        yaxis_title='Percentage',
+        yaxis_title='Abundance (%)',
         yaxis_title_font_size=18,
         yaxis=dict(tickformat=".0%", tickfont_size=16),
         legend_title='Variant',
         legend_title_font_size=16,
         legend_font_size=14,
-        xaxis=dict(tickangle=-45),  # Rotate labels to -45 degrees
+        xaxis=dict(tickangle=-45, tickfont_size=16),
         hoverlabel=dict(font_size=16, font_family="Arial"),
         height=700
         )

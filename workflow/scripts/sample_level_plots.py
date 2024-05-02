@@ -48,9 +48,7 @@ def get_lineage_info(df):
 def get_variant_info(df):
     # Subsection only the data we need
     variants_df = df[["sample", "summarized"]]
-
-    variants_df['summarized'] = variants_df['summarized'].apply(ast.literal_eval)
-    # Parse the 'Variants' column to a more manageable form
+    variants_df['summarized'] = variants_df['summarized'].apply(ast.literal_eval)    # Parse the 'Variants' column to a more manageable form
     rows = []
     for index, row in variants_df.iterrows():
         for variant, percent in row['summarized']:
@@ -82,7 +80,7 @@ def plot_lineage_by_samples(df_lineages, sample_lineage_out):
     # Update layout for a stacked bar chart
     fig.update_layout(
         barmode='stack',
-        title='Lineage Abundances per Sample',
+        title='Lineage Abundance per Sample',
         title_font_size=24,
         xaxis_title='Sample',
         xaxis_title_font_size=18,
@@ -121,17 +119,17 @@ def plot_variant_by_samples(df_variants, sample_variant_out):
     # Update layout for a stacked bar chart
     fig.update_layout(
         barmode='stack',
-        title='Variant Percentages per Sample',
+        title='Variant Abundance per Sample',
         title_font_size=24,
         xaxis_title='Sample',
         xaxis_title_font_size=18,
-        yaxis_title='Percentage',
+        yaxis_title='Abundance (%)',
         yaxis_title_font_size=18,
         yaxis=dict(tickformat=".0%", tickfont_size=16),
         legend_title='Variant',
         legend_title_font_size=16,
         legend_font_size=14,
-        xaxis=dict(tickangle=-45),  # Rotate labels to -45 degrees
+        xaxis=dict(tickangle=-45, tickfont_size=16),
         hoverlabel=dict(font_size=16, font_family="Roboto"),
         height=700
     )
