@@ -5,7 +5,7 @@ import os
 
 
 def get_last_segment(path):
-    return path.rsplit('/', 1)[-1]
+    return path.split('/')[-1]
 
 def parse_assembly_stats_file(file_path):
     with open(file_path, 'r') as file:
