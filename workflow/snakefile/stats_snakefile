@@ -53,15 +53,15 @@ rule_all_list = [
         "output/version_log.txt",
         "output/job_stats.tsv",
         "output/freyja_result.tsv",
-        "output/plots/variants_plot.html",
-        "output/plots/lineages_plot.html"
+        "plots/variants_plot.html",
+        "plots/lineages_plot.html"
 ]
 # If dates are passed, check if metadata.csv is exists then make the time series plots
 if os.path.exists("sample_time_metadata.csv"):
     time_metadata_csv = "sample_time_metadata.csv"
     # add time series plot to rule all
-    rule_all_list.append("output/plots/variants_by_month_plot.html")
-    rule_all_list.append("output/plots/lineages_by_month_plot.html")
+    rule_all_list.append("plots/variants_by_month_plot.html")
+    rule_all_list.append("plots/lineages_by_month_plot.html")
 
 rule all:
     input:
@@ -95,11 +95,10 @@ rule set_freyja_vis:
     params:
         sample_plots_script = os.path.join(workflow_dir, "scripts/sample_level_plots.py")
     output:
-        lineage_plot = "output/plots/lineages_plot.html",
-        variant_plot = "output/plots/variants_plot.html",
+        lineage_plot = "plots/lineages_plot.html",
+        variant_plot = "plots/variants_plot.html",
     shell:
         """
-
     python3 {params.sample_plots_script} \
         {input.aggregated} \
         {output.lineage_plot} \
@@ -115,12 +114,12 @@ rule set_timeseries_plot:
         edit_time_metadata = os.path.join(workflow_dir, "scripts/edit_time_metadata_csv.py"),
         plot_timedata = os.path.join(workflow_dir, "scripts/time_series_plots.py")
     output:
-        variants_day_plot = "output/plots/variants_by_day_plot.html",
-        variants_week_plot = "output/plots/variants_by_week_plot.html",
-        variants_month_plot = "output/plots/variants_by_month_plot.html",
-        lineages_day_plot = "output/plots/lineages_by_day_plot.html",
-        lineages_week_plot = "output/plots/lineages_by_week_plot.html",
-        lineages_month_plot = "output/plots/lineages_by_month_plot.html"
+        variants_day_plot = "plots/variants_by_day_plot.html",
+        variants_week_plot = "plots/variants_by_week_plot.html",
+        variants_month_plot = "plots/variants_by_month_plot.html",
+        lineages_day_plot = "plots/lineages_by_day_plot.html",
+        lineages_week_plot = "plots/lineages_by_week_plot.html",
+        lineages_month_plot = "plots/lineages_by_month_plot.html"
     shell:
         """
     python3 {params.edit_time_metadata}

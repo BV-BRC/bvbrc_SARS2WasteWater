@@ -112,30 +112,28 @@ def day_variant_plot(merged_df, day_variant_out):
             name=variant,
             marker_color=color,  # Set color from the palette
             hoverinfo='y+name',
-            hovertemplate='<b>%{x}</b><br>%{y:.2f}%<br><b>%{data.name}</b><extra></extra>'  # Customize hovertext with HTML
-            # hoverlabel=dict(font_color='black')  # Set hover text color to black
-
+            hovertemplate='<b>%{x}</b><br>%{y:.2%}<br><b>%{data.name}</b><extra></extra>',
+            marker_line_width=0
         ))
 
     # Update layout for a stacked bar chart
     fig.update_layout(
         barmode='stack',
-        title='Variant Percentages by Date',
+        title='Variant Abundance by Date',
         title_font_size=24,
         xaxis_title='Date',
         xaxis_title_font_size=18,
-        yaxis_title='Percentage',
+        yaxis_title='Abundance (%)',
         yaxis_title_font_size=18,
         yaxis=dict(tickformat=".0%", tickfont_size=16),
         legend_title='Variant',
         legend_title_font_size=16,
         legend_font_size=14,
-        xaxis=dict(tickangle=-45),  # Rotate labels to -45 degrees
-        hoverlabel=dict(font_size=16, font_family="Arial")
+        xaxis=dict(tickangle=-45, tickfont_size=16),
+        hoverlabel=dict(font_size=16, font_family="Arial"),
+        height=700
         )
-
-    # Display the figure or save it as HTML
-    fig.write_html(day_variant_out)  # Save the interactive plot as an HTML file
+    fig.write_html(day_variant_out, include_plotlyjs=False)  # This plot will not work outside of the report
     return 
 
 def lineage_day_plot(df, dates_df, day_lineage_out):
@@ -163,32 +161,29 @@ def lineage_day_plot(df, dates_df, day_lineage_out):
             x=df_subset['date'],
             y=df_subset['normalized'],
             name=lineage,
-            # marker_color=color,  # Set color from the palette
             hoverinfo='y+name',
-            hovertemplate='<b>%{x}</b><br>%{y:.2f}%<br><b>%{data.name}</b><extra></extra>'  # Customize hovertext with HTML
-            # hoverlabel=dict(font_color='black')  # Set hover text color to black
-
+            hovertemplate='<b>%{x}</b><br>%{y:.2%}<br><b>%{data.name}</b><extra></extra>',
+            marker_line_width=0
         ))
 
     # Update layout for a stacked bar chart
     fig.update_layout(
         barmode='stack',
-        title='Lineage Percentages by Date',
+        title='Lineage Abundance by Date',
         title_font_size=24,
         xaxis_title='Date',
         xaxis_title_font_size=18,
-        yaxis_title='Percentage',
+        yaxis_title='Abundance (%)',
         yaxis_title_font_size=18,
         yaxis=dict(tickformat=".0%", tickfont_size=16),
         legend_title='Lineage',
         legend_title_font_size=16,
         legend_font_size=14,
-        xaxis=dict(tickangle=-45),  # Rotate labels to -45 degrees
-        hoverlabel=dict(font_size=16, font_family="Arial")
+        xaxis=dict(tickangle=-45, tickfont_size=16),
+        hoverlabel=dict(font_size=16, font_family="Arial"),
+        height=700
         )
-
-    # Display the figure or save it as HTML
-    fig.write_html(day_lineage_out)  # Save the interactive plot as an HTML file
+    fig.write_html(day_lineage_out, include_plotlyjs=False)  # This plot will not work outside of the report
     return
 
 def month_lineages_plot(df, dates_df, month_lineage_out):
@@ -215,32 +210,29 @@ def month_lineages_plot(df, dates_df, month_lineage_out):
             x=df_subset['month'],
             y=df_subset['normalized'],
             name=lineage,
-            # marker_color=color,  # Set color from the palette
             hoverinfo='y+name',
-            hovertemplate='<b>%{x}</b><br>%{y:.2f}%<br><b>%{data.name}</b><extra></extra>'  # Customize hovertext with HTML
-            # hoverlabel=dict(font_color='black')  # Set hover text color to black
-
+            hovertemplate='<b>%{x}</b><br>%{y:.2%}<br><b>%{data.name}</b><extra></extra>',
+            marker_line_width=0
         ))
 
     # Update layout for a stacked bar chart
     fig.update_layout(
         barmode='stack',
-        title='Lineage Percentages by Month',
+        title='Lineage Abundance by Month',
         title_font_size=24,
         xaxis_title='Month',
         xaxis_title_font_size=18,
-        yaxis_title='Percentage',
+        yaxis_title='Abundance (%)',
         yaxis_title_font_size=18,
         yaxis=dict(tickformat=".0%", tickfont_size=16),
         legend_title='Lineage',
         legend_title_font_size=16,
         legend_font_size=14,
-        xaxis=dict(tickangle=-45),  # Rotate labels to -45 degrees
-        hoverlabel=dict(font_size=16, font_family="Arial")
+        xaxis=dict(tickangle=-45, tickfont_size=16),
+        hoverlabel=dict(font_size=16, font_family="Arial"),
+        height=700
         )
-
-    # Display the figure or save it as HTML
-    fig.write_html(month_lineage_out)
+    fig.write_html(month_lineage_out, include_plotlyjs=False)  # This plot will not work outside of the report
     return
 
 def month_variant_plot(df, dates_df, month_variant_out):
@@ -263,28 +255,28 @@ def month_variant_plot(df, dates_df, month_variant_out):
             name=variant,
             marker_color=color,  # Set color from the palette
             hoverinfo='y+name',
-            hovertemplate='<b>%{x}</b><br>%{y:.2f}%<br><b>%{data.name}</b><extra></extra>'  # Customize hovertext with HTML
+            hovertemplate='<b>%{x}</b><br>%{y:.2%}<br><b>%{data.name}</b><extra></extra>',
+            marker_line_width=0
         ))
 
     # Update layout for a stacked bar chart
     fig.update_layout(
         barmode='stack',
-        title='Variant Percentages by Month',
+        title='Variant Abundance by Month',
         title_font_size=24,
         xaxis_title='Month',
         xaxis_title_font_size=18,
-        yaxis_title='Percentage',
+        yaxis_title='Abundance (%)',
         yaxis_title_font_size=18,
         yaxis=dict(tickformat=".0%", tickfont_size=16),
         legend_title='Variant',
         legend_title_font_size=16,
         legend_font_size=14,
-        xaxis=dict(tickangle=-45),  # Rotate labels to -45 degrees
-        hoverlabel=dict(font_size=16, font_family="Arial")
+        xaxis=dict(tickangle=-45, tickfont_size=16),
+        hoverlabel=dict(font_size=16, font_family="Arial"),
+        height=700
         )
-
-    # Display the figure or save it as HTML
-    fig.write_html(month_variant_out)  # Save the interactive plot as an HTML file
+    fig.write_html(month_variant_out, include_plotlyjs=False)  # This plot will not work outside of the report
     return
 
 
@@ -309,31 +301,29 @@ def week_lineages_plot(df, dates_df, week_lineage_out):
             x=df_subset['epiweek'],
             y=df_subset['normalized'],
             name=lineage,
-            # marker_color=color,  # Set color from the palette
             hoverinfo='y+name',
-            hovertemplate='<b>%{x}</b><br>%{y:.2f}%<br><b>%{data.name}</b><extra></extra>'  # Customize hovertext with HTML
-            # hoverlabel=dict(font_color='black')  # Set hover text color to black
+            hovertemplate='<b>%{x}</b><br>%{y:.2%}<br><b>%{data.name}</b><extra></extra>',
+            marker_line_width=0
         ))
 
     # Update layout for a stacked bar chart
     fig.update_layout(
         barmode='stack',
-        title='Lineage Percentages by Week',
+        title='Lineage Abundance by Week',
         title_font_size=24,
         xaxis_title='Month',
         xaxis_title_font_size=18,
-        yaxis_title='Percentage',
+        yaxis_title='Abundance (%)',
         yaxis_title_font_size=18,
         yaxis=dict(tickformat=".0%", tickfont_size=16),
         legend_title='Lineage',
         legend_title_font_size=16,
         legend_font_size=14,
-        xaxis=dict(tickangle=-45),  # Rotate labels to -45 degrees
-        hoverlabel=dict(font_size=16, font_family="Arial")
+        xaxis=dict(tickangle=-45, tickfont_size=16),
+        hoverlabel=dict(font_size=16, font_family="Arial"),
+        height=700
         )
-
-    # Display the figure or save it as HTML
-    fig.write_html(week_lineage_out)
+    fig.write_html(week_lineage_out, include_plotlyjs=False)  # This plot will not work outside of the report
     return
 
 
@@ -347,12 +337,10 @@ def week_variant_plot(df, dates_df, week_variant_out):
     # group rows that have the same sample id together
     # group sample ids with the same epiweek together 
     # varaints will group together
-    # grouped_df = merged_df.groupby(['Sample','date', 'Variant']).sum() 
     merged_df['normalized'] = merged_df[['epiweek','Percent']].groupby(['epiweek'])['Percent'].transform(lambda x: x / x.sum())
 
     # Create a Plotly figure
     fig = go.Figure()
-    # # changes to atch below 
     # Add traces
     variants = merged_df['Variant'].unique()
     for i, variant in enumerate(variants):
@@ -364,29 +352,28 @@ def week_variant_plot(df, dates_df, week_variant_out):
             name=variant,
             marker_color=color,  # Set color from the palette
             hoverinfo='y+name',
-            hovertemplate='<b>%{x}</b><br>%{y:.2f}%<br><b>%{data.name}</b><extra></extra>'  # Customize hovertext with HTML
+            hovertemplate='<b>%{x}</b><br>%{y:.2%}<br><b>%{data.name}</b><extra></extra>',
+            marker_line_width=0
         ))
 
     # Update layout for a stacked bar chart
     fig.update_layout(
         barmode='stack',
-        title='Variant Percentages by Week',
+        title='Variant Abundance by Week',
         title_font_size=24,
         xaxis_title='Epiweek',
         xaxis_title_font_size=18,
-        yaxis_title='Percentage',
+        yaxis_title='Abundance (%)',
         yaxis_title_font_size=18,
         yaxis=dict(tickformat=".0%", tickfont_size=16),
         legend_title='Variant',
         legend_title_font_size=16,
         legend_font_size=14,
-        xaxis=dict(tickangle=-45),  # Rotate labels to -45 degrees
-        hoverlabel=dict(font_size=16, font_family="Arial")
+        xaxis=dict(tickangle=-45, tickfont_size=16),
+        hoverlabel=dict(font_size=16, font_family="Arial"),
+        height=700
         )
-
-    # Display the figure or save it as HTML
-    fig.write_html(week_variant_out)  # Save the interactive plot as an HTML file
-    return
+    fig.write_html(week_variant_out, include_plotlyjs=False)  # This plot will not work outside of the report
 
 def main(argv):
     # step 0 get paths set up
@@ -422,6 +409,6 @@ def main(argv):
         month_lineages_plot(df, dates_df, month_lineage_out)
         # variant month
         month_variant_plot(df, dates_df, month_variant_out)
-
+        print('Time series stacked bar plots generated')
 if __name__ == "__main__":
     main(sys.argv)
