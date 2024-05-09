@@ -89,7 +89,6 @@ with open("config.json") as f:
 rule_all_list = [
         expand("output/{sample}/freyja/{sample}_freyja_variants.tsv", sample=samples),
         expand("output/{sample}/freyja/{sample}_freyja_result.tsv", sample=samples),
-        expand("output/{sample}/{sample}_variant_plot.svg", sample=samples),
         expand("assembly_images/{sample}.detail.png", sample=samples)
     ]
 
@@ -175,55 +174,6 @@ rule freyja_demix:
 
         cp {output.freyja_file} {output.tmp_freyja}
         """
-
-rule sample_freyja_vis:
-    input:
-        # Freyja aggregate command expects a directory not the demixing results files themselves
-        # adding the demxing results to help multi threading track the order
-        freyja_file = "output/{sample}/freyja/{sample}_freyja_result.tsv",
-	tmp_freyja_file = "tmp/{sample}_freyja_result.tsv"
-    params:
-        freyja_dir = directory("output/{sample}/freyja/"),
-        cl_agg_dir = directory("clean_up/single_aggs/{sample}"),
-        lineage_yml = lineages,
-        single_aggregate = "output/{sample}/{sample}_aggregated_result.tsv",
-        ext = "_freyja_result.tsv",
-        minimum_genome_coverage = minimum_genome_coverage_val,
-        agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val,
-        variant_plot_msg = "tmp/{sample}_sample_variant_plot_error.txt",
-        lineage_plot_msg = "tmp/{sample}_sample_lineage_plot_error.txt"
-    output:
-        plot = "output/{sample}/{sample}_variant_plot.svg",
-        lineage_plot = "output/{sample}/{sample}_lineage_plot.svg",
-        clean_single_aggregate = "clean_up/single_aggs/{sample}/{sample}_aggregated_result.tsv",
-    shell:
-        """
-        freyja aggregate \
-            {params.freyja_dir} \
-            --ext {params.ext} \
-            --output {params.single_aggregate}
-
-        freyja plot \
-            {params.single_aggregate} \
-            --lineageyml {params.lineage_yml} \
-            --mincov {params.minimum_genome_coverage} \
-            --thresh {params.agg_minimum_lineage_abundance} \
-            --output {output.plot} > {params.variant_plot_msg}
-
-        freyja plot \
-            {params.single_aggregate} \
-            --lineages \
-            --lineageyml {params.lineage_yml} \
-            --mincov {params.minimum_genome_coverage} \
-            --thresh {params.agg_minimum_lineage_abundance} \
-            --output {output.lineage_plot} > {params.lineage_plot_msg}
-        
-        # the single aggregate file is redundant to the freyja file. Moving to clean up directory
-        mkdir -p {params.cl_agg_dir}
-
-        mv {params.single_aggregate} {output.clean_single_aggregate}
-        """
-
 rule clean_up_fastqc_zip_se:
     input:
         zip_path = "output/{se_sample}/fastqc_results/{se_sample}_fastqc.zip",
