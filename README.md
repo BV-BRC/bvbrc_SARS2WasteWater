@@ -1,4 +1,4 @@
-# SARS-Cov-2 Wastewater Analysis Service¶
+# SARS-Cov-2 Wastewater Analysis Service
 
 
 ## Overview
@@ -14,7 +14,7 @@ the components of the BV-BRC. More documentation is available [here](https://git
 
 There is one application service specification defined here:
 
-1.  [SARS-Cov-2 Wastewater Analysis Service](https://github.com/nicolegobo/bvbrc_SARS2Wastewater/blob/master/app_specs/SARS2Wastewater.json): Service that that provides the backend for the BV-BRC web inerface; it takes reads as input.
+1.  [SARS-Cov-2 Wastewater Analysis Service](app_specs/SARS2Wastewater.md): Service that that provides the backend for the BV-BRC web inerface; it takes reads as input.
 
 The code in this module provides the BV-BRC application service wrapper scripts for the wastewater service:
 
