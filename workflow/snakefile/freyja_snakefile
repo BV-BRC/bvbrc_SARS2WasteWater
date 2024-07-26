@@ -177,6 +177,7 @@ rule freyja_demix:
 
         cp {output.freyja_file} {output.tmp_freyja}
         """
+<<<<<<< HEAD
 
 rule sample_freyja_agg:
     input:
@@ -239,6 +240,8 @@ rule freyja_lineage_plot:
             --output {output.lineage_plot} > {params.lineage_plot_msg}
         """
 
+=======
+>>>>>>> 7e3aa948068e74e0ae4778d13c652d9352250bea
 rule clean_up_fastqc_zip_se:
     input:
         zip_path = "output/{se_sample}/fastqc_results/{se_sample}_fastqc.zip",

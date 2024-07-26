@@ -151,7 +151,7 @@ rule multiqc:
         """
         multiqc --version
 
-        multiqc output/. \
+        multiqc clean_up/. output/. \
             -c {input.multiqc_config} \
             -o {params.landing_dir} --fullnames \
             -f
