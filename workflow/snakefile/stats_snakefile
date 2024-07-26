@@ -51,7 +51,6 @@ primer_version = config["params"]["primer_version"]
 rule_all_list = [
         "output/multiqc_report.html",
         "output/version_log.txt",
-        "output/job_stats.tsv",
         "output/freyja_result.tsv",
         "plots/variants_plot.html",
         "plots/lineages_plot.html"
@@ -112,7 +111,8 @@ rule set_timeseries_plot:
         metadata_csv = time_metadata_csv,
         edited_metadata_csv = "edited_sample_time_metadata.csv",
         edit_time_metadata = os.path.join(workflow_dir, "scripts/edit_time_metadata_csv.py"),
-        plot_timedata = os.path.join(workflow_dir, "scripts/time_series_plots.py")
+        plot_timedata = os.path.join(workflow_dir, "scripts/time_series_plots.py"),
+        plots_dir = directory('plots'),
     output:
         variants_day_plot = "plots/variants_by_day_plot.html",
         variants_week_plot = "plots/variants_by_week_plot.html",
@@ -122,6 +122,8 @@ rule set_timeseries_plot:
         lineages_month_plot = "plots/lineages_by_month_plot.html"
     shell:
         """
+    mkdir -p {params.plots_dir}
+
     python3 {params.edit_time_metadata}
 
     python3 {params.plot_timedata} \
@@ -185,14 +187,4 @@ rule write_out_versions:
         samtools version >> {output.version_log}
 
         cat {params.last_barcode_update_file} >> {output.barcode_version}
-        """
-
-rule run_stats_report:
-    params:
-        prep_results_path = os.path.join(workflow_dir, 'scripts/prep_results.py')
-    output:
-        results_tsv = "output/job_stats.tsv"
-    shell:
-        """
-        python3 {params.prep_results_path} {output.results_tsv}
         """

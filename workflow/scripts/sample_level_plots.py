@@ -5,34 +5,39 @@ Created on Mon Apr 29 06:33:08 2024
 
 @author: nbowers
 """
-import ast  # Import ast module for literal_eval
 import matplotlib.colors as mcolors
+import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import sys
 
-
-color_blind_friendly_colors = [
-    '#E69F00',  # Orange
-    '#56B4E9',  # Sky Blue
-    '#009E73',  # Bluish Green
-    '#F0E442',  # Yellow
-    '#0072B2',  # Blue
-    '#D55E00',  # Vermilion
-    '#CC79A7',  # Reddish Purple
-    '#999999',  # Gray
+colorblind_palette = [
+    "#377eb8",  # Blue
+    "#ff7f00",  # Orange
+    "#4daf4a",  # Green
+    "#f781bf",  # Pink
+    "#a65628",  # Brown
+    "#984ea3",  # Purple
+    "#999999",  # Grey
+    "#e41a1c",  # Red
+    "#dede00",  # Yellow
+    "#e7298a",  # Dark Pink
+    "#66a61e",  # Light Green
+    "#1f78b4",  # Light Blue
+    "#a6cee3",  # Pale Blue
+    "#fdbf6f",  # Light Orange
+    "#b2df8a"   # Light Green
 ]
 
 def get_extended_color_palette(n_colors):
     return [mcolors.hsv_to_rgb((x*1.0/n_colors, 0.5, 0.9)) for x in range(n_colors)]
 
-def get_lineage_info(df):
-    lineage_df = df[["sample", "lineages", "abundances"]]
-
-    # Split the 'lineages' and 'abundances' columns into lists
+def get_lineage_info(df):    
+    lineage_df = df[["sample", "lineages", "abundances"]].copy()
     lineage_df['lineages'] = df['lineages'].str.split()
     lineage_df['abundances'] = df['abundances'].str.split().apply(lambda x: [float(i) for i in x])
-
+    lineage_df.to_csv("lineages.csv")
+    
     # Expand the lists into rows
     rows = []
     for _, row in lineage_df.iterrows():
@@ -46,15 +51,21 @@ def get_lineage_info(df):
     return df_lineages
 
 def get_variant_info(df):
-    # Subsection only the data we need
-    variants_df = df[["sample", "summarized"]]
-    variants_df['summarized'] = variants_df['summarized'].apply(ast.literal_eval)    # Parse the 'Variants' column to a more manageable form
     rows = []
-    for index, row in variants_df.iterrows():
-        for variant, percent in row['summarized']:
-            rows.append({'Sample': row['sample'], 'Variant': variant, 'Percent': percent})
-    df_variants = pd.DataFrame(rows)
-    return df_variants
+    # Subsection only the data we need
+    samples_variants_info = df[["sample", "summarized"]]
+    # Will use the entire variant name
+    for index, row in samples_variants_info.iterrows():
+        sample_id = row["sample"]
+        tuples_list = row['summarized']
+        tuples_list = list(eval(tuples_list))
+        for tup in tuples_list:
+            name, abundance = tup
+            # Append a new row to the rows list
+            rows.append({'sample_id': sample_id, 'Variant': name, 'abundance': abundance})
+        # Create a new dataframe from the rows list
+    variants_df = pd.DataFrame(rows)
+    return variants_df
 
 def plot_lineage_by_samples(df_lineages, sample_lineage_out):
     # Create a Plotly figure
@@ -62,20 +73,15 @@ def plot_lineage_by_samples(df_lineages, sample_lineage_out):
     # Add traces
     lineages = df_lineages['lineage'].unique()
     for i, lineage in enumerate(lineages):
-        if len(lineage) <= len(color_blind_friendly_colors):
-            color = color_blind_friendly_colors[i % len(color_blind_friendly_colors)]
-        else:
-            n = len(lineage)
-            color = get_extended_color_palette(n)
         df_lineage = df_lineages[df_lineages['lineage'] == lineage]
         fig.add_trace(go.Bar(
             x=df_lineage['sample'],
             y=df_lineage['abundance'],
             name=lineage,
-            marker_color=color,
+            marker_color=colorblind_palette[i % len(colorblind_palette)], # loop through the color palette
             hoverinfo='y+name',
             hovertemplate='<b>%{x}</b><br>%{y:.2%}<br><b>%{data.name}</b><extra></extra>',
-        ))
+    ))
 
     # Update layout for a stacked bar chart
     fig.update_layout(
@@ -94,47 +100,44 @@ def plot_lineage_by_samples(df_lineages, sample_lineage_out):
         hoverlabel=dict(font_size=16, font_family="Roboto"),
         height=700,
     )
+    fig.write_html("temp_plot.html", include_plotlyjs=True)
     fig.write_html(sample_lineage_out, include_plotlyjs=False)  # This plot will not work outside of the report
     return
 
 
 def plot_variant_by_samples(df_variants, sample_variant_out):
-    # Create a Plotly figure
-    fig = go.Figure()
-    # # changes to atch below 
-    # Add traces
+    # Create a list of unique variants
     variants = df_variants['Variant'].unique()
+    # Initialize a figure
+    fig = go.Figure()
+
+    # Add a bar for each variant
     for i, variant in enumerate(variants):
-        df_subset = df_variants[df_variants['Variant'] == variant]
-        color = color_blind_friendly_colors[i % len(color_blind_friendly_colors)]
+        variant_data = df_variants[df_variants['Variant'] == variant]
         fig.add_trace(go.Bar(
-            x=df_subset['Sample'],
-            y=df_subset['Percent'],
-            name=variant,
-            marker_color=color,  # Set color from the palette
-            hoverinfo='y+name',
-            hovertemplate='<b>%{x}</b><br>%{y:.2%}<br><b>%{data.name}</b><extra></extra>'
+            x=variant_data['sample_id'],
+            y=variant_data['abundance'],
+            marker_color=colorblind_palette[i % len(colorblind_palette)], # loop through the color palette
+            name=variant
         ))
 
-    # Update layout for a stacked bar chart
     fig.update_layout(
-        barmode='stack',
-        title='Variant Abundance per Sample',
-        title_font_size=24,
-        xaxis_title='Sample',
-        xaxis_title_font_size=18,
-        yaxis_title='Abundance (%)',
-        yaxis_title_font_size=18,
-        yaxis=dict(tickformat=".0%", tickfont_size=16),
-        legend_title='Variant',
-        legend_title_font_size=16,
-        legend_font_size=14,
-        xaxis=dict(tickangle=-45, tickfont_size=16),
-        hoverlabel=dict(font_size=16, font_family="Roboto"),
-        height=700
+    barmode='stack',
+    title='Variant Abundance by Sample',
+    title_font_size=24,
+    xaxis_title='Date',
+    xaxis_title_font_size=18,
+    yaxis_title='Abundance (%)',
+    yaxis_title_font_size=18,
+    yaxis=dict(tickformat=".0%", tickfont_size=16),
+    legend_title='Variant',
+    legend_title_font_size=16,
+    legend_font_size=14,
+    xaxis=dict(tickangle=-45, tickfont_size=16),
+    hoverlabel=dict(font_size=16, font_family="Roboto"),
+    height=700
     )
     fig.write_html(sample_variant_out, include_plotlyjs=False)  # This plot will not work outside of the report
-    return
 
 def main(argv):
     # step 0 get paths set up
@@ -151,10 +154,9 @@ def main(argv):
     # reduce file size by rounding
     df_lineages["abundance"] = df_lineages["abundance"].round(3)
     plot_lineage_by_samples(df_lineages, sample_lineage_out)
-    # variants
     df_variants = get_variant_info(df)
     plot_variant_by_samples(df_variants, sample_variant_out)
-    print("Stample stacked bar plots generated ")
+    print("Sample stacked bar plots generated ")
 
 if __name__ == "__main__":
     main(sys.argv)

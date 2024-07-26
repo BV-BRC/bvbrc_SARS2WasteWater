@@ -1,3 +1,7 @@
+## Nicole 
+# before pushing check for your name and changes and 
+# nbowers
+
 #!/opt/patric-common/runtime/bin/python3
 import csv
 import json
@@ -25,7 +29,7 @@ def check_for_error_msgs(raw_msg, file, out_msg):
                 pass
 
 def check_input_fastqs(input_dir, filename):
-    input_path = f"{input_dir}/{filename}"
+    input_path = "{}/{}".format(input_dir, filename)
     if os.path.isfile(input_path) == True:
         return input_path
     else:
@@ -33,13 +37,10 @@ def check_input_fastqs(input_dir, filename):
         sys.stderr.write(msg)
         pass
 
-
 def check_sample_metadata_csv(input_info, config_file, input_dir, staging_metadata_file):
     if staging_metadata_file != "0":
         if os.path.isfile(staging_metadata_file) == True:
             metadata_df = pd.read_csv(staging_metadata_file)
-            #edited_staging_metadata_file = ""
-            # check if the date column and sample column are the same length
             if len(metadata_df["Read_file"]) != len(metadata_df["sample_collection_datetime"]):
                 msg = f"Error {staging_metadata_file} is missing a filename or date'. \n check on {staging_metadata_file} \n"
                 sys.stderr.write(msg)
@@ -284,8 +285,13 @@ def run_snakefiles(input_dict, input_dir, output_dir,  config):
     if freyja_check == True:
         msg = "Wastewater Analysis is complete \n"
         sys.stderr.write(msg)
-    # create the HTML report 
+    # prep job stats for the html report
+    # moved to wrapper so job order does not impact file checks
     script_dir = f"{config['workflow_dir']}/scripts/"
+    write_job_stats = os.path.join(script_dir, 'prep_results.py')
+    cmd = ["python3", write_job_stats, "output/job_stats.tsv"]
+    subprocess.run(cmd)
+    # create the HTML report
     write_report = os.path.join(script_dir, "write_html_report.py")
     cmd = ["python3", write_report]
     subprocess.run(cmd)
