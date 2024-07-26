@@ -4,7 +4,8 @@ import json
 msg = "snakefile command recieved - FREYJA AND POST PROCESSING \n"
 sys.stderr.write(msg)
 
-ruleorder: freyja_demix # > sample_freyja_vis > clean_up_fastqc_zip_pe > clean_up_fastqc_zip_se
+ruleorder: copy_assembly_images_for_report > freyja_variants > freyja_demix > sample_freyja_agg > freyja_variant_plot > freyja_lineage_plot > clean_up_fastqc_zip_se > clean_up_fastqc_zip_pe
+
 ### Define wildcards ###
 pe_zpd_samples = glob_wildcards("staging/pe_reads/{sample}_R{read_num}.fastq.gz").sample
 pe_unzpd_samples = glob_wildcards("staging/pe_reads/{sample}_R{read_num}.fastq").sample
@@ -90,8 +91,9 @@ rule_all_list = [
         expand("output/{sample}/freyja/{sample}_freyja_variants.tsv", sample=samples),
         expand("output/{sample}/freyja/{sample}_freyja_result.tsv", sample=samples),
         expand("output/{sample}/{sample}_aggregated_result.tsv", sample=samples),
-        expand("output/{sample}/{sample}_variant_plot.svg", sample=samples),
-        expand("output/{sample}/{sample}_lineage_plot.svg", sample=samples),
+        # commenting out freyja plots for now
+        # expand("output/{sample}/{sample}_variant_plot.svg", sample=samples),
+        # expand("output/{sample}/{sample}_lineage_plot.svg", sample=samples),
         expand("assembly_images/{sample}.detail.png", sample=samples)
     ]
 
@@ -177,7 +179,6 @@ rule freyja_demix:
 
         cp {output.freyja_file} {output.tmp_freyja}
         """
-<<<<<<< HEAD
 
 rule sample_freyja_agg:
     input:
@@ -240,8 +241,6 @@ rule freyja_lineage_plot:
             --output {output.lineage_plot} > {params.lineage_plot_msg}
         """
 
-=======
->>>>>>> 7e3aa948068e74e0ae4778d13c652d9352250bea
 rule clean_up_fastqc_zip_se:
     input:
         zip_path = "output/{se_sample}/fastqc_results/{se_sample}_fastqc.zip",
