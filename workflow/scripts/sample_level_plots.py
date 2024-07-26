@@ -36,7 +36,6 @@ def get_lineage_info(df):
     lineage_df = df[["sample", "lineages", "abundances"]].copy()
     lineage_df['lineages'] = df['lineages'].str.split()
     lineage_df['abundances'] = df['abundances'].str.split().apply(lambda x: [float(i) for i in x])
-    lineage_df.to_csv("lineages.csv")
     
     # Expand the lists into rows
     rows = []
@@ -100,7 +99,6 @@ def plot_lineage_by_samples(df_lineages, sample_lineage_out):
         hoverlabel=dict(font_size=16, font_family="Roboto"),
         height=700,
     )
-    fig.write_html("temp_plot.html", include_plotlyjs=True)
     fig.write_html(sample_lineage_out, include_plotlyjs=False)  # This plot will not work outside of the report
     return
 

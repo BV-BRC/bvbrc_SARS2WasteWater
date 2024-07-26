@@ -272,7 +272,6 @@ def month_lineages_plot(df, dates_df, month_lineage_out):
         hoverlabel=dict(font_size=16, font_family="Arial"),
         height=700
         )
-    fig.write_html("temp_plot.html", include_plotlyjs=True)
     fig.write_html(month_lineage_out, include_plotlyjs=False)  # This plot will not work outside of the report
     return
 

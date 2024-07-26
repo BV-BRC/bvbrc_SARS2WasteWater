@@ -137,7 +137,6 @@ rule set_timeseries_plot:
         {output.variants_month_plot}
         """
 
-
 rule multiqc:
     input:
        multiqc_config = os.path.join(workflow_dir, "multiqc_config.yaml"),
