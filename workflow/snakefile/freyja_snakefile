@@ -4,7 +4,8 @@ import json
 msg = "snakefile command recieved - FREYJA AND POST PROCESSING \n"
 sys.stderr.write(msg)
 
-ruleorder: freyja_demix > sample_freyja_vis > clean_up_fastqc_zip_pe > clean_up_fastqc_zip_se
+ruleorder: copy_assembly_images_for_report > freyja_variants > freyja_demix > sample_freyja_agg > freyja_variant_plot > freyja_lineage_plot > clean_up_fastqc_zip_se > clean_up_fastqc_zip_pe
+
 ### Define wildcards ###
 pe_zpd_samples = glob_wildcards("staging/pe_reads/{sample}_R{read_num}.fastq.gz").sample
 pe_unzpd_samples = glob_wildcards("staging/pe_reads/{sample}_R{read_num}.fastq").sample
@@ -89,6 +90,10 @@ with open("config.json") as f:
 rule_all_list = [
         expand("output/{sample}/freyja/{sample}_freyja_variants.tsv", sample=samples),
         expand("output/{sample}/freyja/{sample}_freyja_result.tsv", sample=samples),
+        expand("output/{sample}/{sample}_aggregated_result.tsv", sample=samples),
+        # commenting out freyja plots for now
+        # expand("output/{sample}/{sample}_variant_plot.svg", sample=samples),
+        # expand("output/{sample}/{sample}_lineage_plot.svg", sample=samples),
         expand("assembly_images/{sample}.detail.png", sample=samples)
     ]
 
@@ -174,6 +179,68 @@ rule freyja_demix:
 
         cp {output.freyja_file} {output.tmp_freyja}
         """
+
+rule sample_freyja_agg:
+    input:
+        # Freyja aggregate command expects a directory not the demixing results files themselves
+        # adding the demxing results to help multi threading track the order
+        freyja_file = "output/{sample}/freyja/{sample}_freyja_result.tsv",
+    params:
+        freyja_dir = directory("output/{sample}/freyja/"),
+        ext = "_freyja_result.tsv",
+        minimum_genome_coverage = minimum_genome_coverage_val,
+    output:
+        single_aggregate = "output/{sample}/{sample}_aggregated_result.tsv",
+    shell:
+        """
+        freyja aggregate \
+            {params.freyja_dir} \
+            --ext {params.ext} \
+            --output {output.single_aggregate}
+        """
+
+rule freyja_variant_plot:
+    input:
+        single_aggregate = "output/{sample}/{sample}_aggregated_result.tsv",
+    params:
+        agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val,
+        lineage_yml = lineages,
+        minimum_genome_coverage = minimum_genome_coverage_val,
+        variant_plot_msg = "tmp/{sample}_sample_variant_plot_error.txt",
+    output:
+        variant_plot = "output/{sample}/{sample}_variant_plot.svg",
+    shell:
+        """
+        freyja plot \
+            {input.single_aggregate} \
+            --lineageyml {params.lineage_yml} \
+            --mincov {params.minimum_genome_coverage} \
+            --thresh {params.agg_minimum_lineage_abundance} \
+            --output {output.variant_plot} > {params.variant_plot_msg}
+        """
+
+rule freyja_lineage_plot:
+    input:
+        single_aggregate = "output/{sample}/{sample}_aggregated_result.tsv",
+    params:
+        agg_minimum_lineage_abundance = agg_minimum_lineage_abundance_val,
+        cl_agg_dir = directory("clean_up/single_aggs/{sample}"),
+        minimum_genome_coverage = minimum_genome_coverage_val,
+        lineage_yml = lineages,
+        lineage_plot_msg = "tmp/{sample}_sample_lineage_plot_error.txt"
+    output:
+        lineage_plot = "output/{sample}/{sample}_lineage_plot.svg",
+    shell:
+        """
+        freyja plot \
+            {input.single_aggregate} \
+            --lineages \
+            --lineageyml {params.lineage_yml} \
+            --mincov {params.minimum_genome_coverage} \
+            --thresh {params.agg_minimum_lineage_abundance} \
+            --output {output.lineage_plot} > {params.lineage_plot_msg}
+        """
+
 rule clean_up_fastqc_zip_se:
     input:
         zip_path = "output/{se_sample}/fastqc_results/{se_sample}_fastqc.zip",
