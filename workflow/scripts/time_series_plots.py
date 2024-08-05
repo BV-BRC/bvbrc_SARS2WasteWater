@@ -268,10 +268,15 @@ def month_lineages_plot(df, dates_df, month_lineage_out):
         legend_title='Lineage',
         legend_title_font_size=16,
         legend_font_size=14,
-        xaxis=dict(tickangle=-45, tickfont_size=16),
+        xaxis=dict(
+            type='category',
+            categoryorder='category ascending',
+            tickangle=-45,
+            tickfont_size=16
+        ),
         hoverlabel=dict(font_size=16, font_family="Arial"),
         height=700
-        )
+    )
     fig.write_html(month_lineage_out, include_plotlyjs=False)  # This plot will not work outside of the report
     return
 
@@ -309,7 +314,12 @@ def month_variant_plot(merged_df, month_variant_out):
         legend_title='Variant',
         legend_title_font_size=16,
         legend_font_size=14,
-        xaxis=dict(tickangle=-45, tickfont_size=16),
+        xaxis=dict(
+            type='category',
+            categoryorder='category ascending',
+            tickangle=-45,
+            tickfont_size=16
+        ),
         hoverlabel=dict(font_size=16, font_family="Arial"),
         height=700
         )
@@ -325,7 +335,7 @@ def week_lineages_plot(df, dates_df, week_lineage_out):
     # group sample ids with the same date together 
     merged_df['normalized'] = merged_df[['epiweek','abundance']].groupby(['epiweek'])['abundance'].transform(lambda x: x / x.sum())
     fig = go.Figure()
-    lineages = merged_df['lineage'].unique()
+    lineages = merged_df.sort_values(by='epiweek')['lineage'].unique()
     for i, lineage in enumerate(lineages):
         df_subset = merged_df[merged_df['lineage'] == lineage]
         fig.add_trace(go.Bar(
@@ -368,7 +378,7 @@ def week_variant_plot(merged_df, week_variant_out):
     # Create a Plotly figure
     fig = go.Figure()
     # Add traces
-    variants = merged_df['Variant'].unique()
+    variants = merged_df.sort_values(by='epiweek')['Variant'].unique()
     for i, variant in enumerate(variants):
         df_subset = merged_df[merged_df['Variant'] == variant]
         fig.add_trace(go.Bar(
