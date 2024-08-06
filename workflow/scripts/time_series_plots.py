@@ -52,7 +52,9 @@ def calculate_month(date_str):
     year = int(my_date[2])
     month = int(my_date[0])
     day = int(my_date[1])
-    return "{}/{}".format(month, year)
+    # Pad single digit months with a zero
+    month_str = str(month).zfill(2)
+    return "{}/{}".format(year, month_str)
 
 # def get_extended_color_palette(n_colors):
 #     return [mcolors.hsv_to_rgb((x*1.0/n_colors, 0.5, 0.9)) for x in range(n_colors)]
@@ -335,7 +337,7 @@ def week_lineages_plot(df, dates_df, week_lineage_out):
     # group sample ids with the same date together 
     merged_df['normalized'] = merged_df[['epiweek','abundance']].groupby(['epiweek'])['abundance'].transform(lambda x: x / x.sum())
     fig = go.Figure()
-    lineages = merged_df.sort_values(by='epiweek')['lineage'].unique()
+    lineages = merged_df['lineage'].unique()
     for i, lineage in enumerate(lineages):
         df_subset = merged_df[merged_df['lineage'] == lineage]
         fig.add_trace(go.Bar(
@@ -361,7 +363,12 @@ def week_lineages_plot(df, dates_df, week_lineage_out):
         legend_title='Lineage',
         legend_title_font_size=16,
         legend_font_size=14,
-        xaxis=dict(tickangle=-45, tickfont_size=16),
+        xaxis=dict(
+            type='category',
+            categoryorder='category ascending',
+            tickangle=-45,
+            tickfont_size=16
+        ),
         hoverlabel=dict(font_size=16, font_family="Arial"),
         height=700
         )
@@ -378,7 +385,7 @@ def week_variant_plot(merged_df, week_variant_out):
     # Create a Plotly figure
     fig = go.Figure()
     # Add traces
-    variants = merged_df.sort_values(by='epiweek')['Variant'].unique()
+    variants = merged_df['Variant'].unique()
     for i, variant in enumerate(variants):
         df_subset = merged_df[merged_df['Variant'] == variant]
         fig.add_trace(go.Bar(
@@ -404,7 +411,12 @@ def week_variant_plot(merged_df, week_variant_out):
         legend_title='Variant',
         legend_title_font_size=16,
         legend_font_size=14,
-        xaxis=dict(tickangle=-45, tickfont_size=16),
+        xaxis=dict(
+            type='category',
+            categoryorder='category ascending',
+            tickangle=-45,
+            tickfont_size=16
+        ),
         hoverlabel=dict(font_size=16, font_family="Arial"),
         height=700
         )
