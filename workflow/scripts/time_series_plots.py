@@ -52,9 +52,7 @@ def calculate_month(date_str):
     year = int(my_date[2])
     month = int(my_date[0])
     day = int(my_date[1])
-    # Pad single digit months with a zero
-    month_str = str(month).zfill(2)
-    return "{}/{}".format(year, month_str)
+    return f"{year}/{month:02d}"
 
 # def get_extended_color_palette(n_colors):
 #     return [mcolors.hsv_to_rgb((x*1.0/n_colors, 0.5, 0.9)) for x in range(n_colors)]
