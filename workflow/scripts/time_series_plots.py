@@ -52,7 +52,7 @@ def calculate_month(date_str):
     year = int(my_date[2])
     month = int(my_date[0])
     day = int(my_date[1])
-    return "{}/{}".format(month, year)
+    return f"{year}/{month:02d}"
 
 # def get_extended_color_palette(n_colors):
 #     return [mcolors.hsv_to_rgb((x*1.0/n_colors, 0.5, 0.9)) for x in range(n_colors)]
@@ -268,10 +268,15 @@ def month_lineages_plot(df, dates_df, month_lineage_out):
         legend_title='Lineage',
         legend_title_font_size=16,
         legend_font_size=14,
-        xaxis=dict(tickangle=-45, tickfont_size=16),
+        xaxis=dict(
+            type='category',
+            categoryorder='category ascending',
+            tickangle=-45,
+            tickfont_size=16
+        ),
         hoverlabel=dict(font_size=16, font_family="Arial"),
         height=700
-        )
+    )
     fig.write_html(month_lineage_out, include_plotlyjs=False)  # This plot will not work outside of the report
     return
 
@@ -309,7 +314,12 @@ def month_variant_plot(merged_df, month_variant_out):
         legend_title='Variant',
         legend_title_font_size=16,
         legend_font_size=14,
-        xaxis=dict(tickangle=-45, tickfont_size=16),
+        xaxis=dict(
+            type='category',
+            categoryorder='category ascending',
+            tickangle=-45,
+            tickfont_size=16
+        ),
         hoverlabel=dict(font_size=16, font_family="Arial"),
         height=700
         )
@@ -351,7 +361,12 @@ def week_lineages_plot(df, dates_df, week_lineage_out):
         legend_title='Lineage',
         legend_title_font_size=16,
         legend_font_size=14,
-        xaxis=dict(tickangle=-45, tickfont_size=16),
+        xaxis=dict(
+            type='category',
+            categoryorder='category ascending',
+            tickangle=-45,
+            tickfont_size=16
+        ),
         hoverlabel=dict(font_size=16, font_family="Arial"),
         height=700
         )
@@ -394,7 +409,12 @@ def week_variant_plot(merged_df, week_variant_out):
         legend_title='Variant',
         legend_title_font_size=16,
         legend_font_size=14,
-        xaxis=dict(tickangle=-45, tickfont_size=16),
+        xaxis=dict(
+            type='category',
+            categoryorder='category ascending',
+            tickangle=-45,
+            tickfont_size=16
+        ),
         hoverlabel=dict(font_size=16, font_family="Arial"),
         height=700
         )
