@@ -190,7 +190,7 @@ def lineage_day_plot(df, dates_df, day_lineage_out):
 
     # Round values
     final_df['normalized_avg'].round(3)
-
+    final_df.sort_values(by=['normalized_avg'], inplace=True)
     # Pivot the data to have dates as columns and lineages as rows
     pivot_df = final_df.pivot(index='lineage', columns='date', values='normalized_avg').fillna(0)
 
@@ -343,7 +343,7 @@ def week_lineages_plot(df, dates_df, week_lineage_out):
         barmode='stack',
         title='Lineage Abundance by Week',
         title_font_size=24,
-        xaxis_title='Month',
+        xaxis_title='Epiweek',
         xaxis_title_font_size=18,
         yaxis_title='Abundance (%)',
         yaxis_title_font_size=18,

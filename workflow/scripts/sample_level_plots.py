@@ -123,7 +123,7 @@ def plot_variant_by_samples(df_variants, sample_variant_out):
     barmode='stack',
     title='Variant Abundance by Sample',
     title_font_size=24,
-    xaxis_title='Date',
+    xaxis_title='Sample',
     xaxis_title_font_size=18,
     yaxis_title='Abundance (%)',
     yaxis_title_font_size=18,
