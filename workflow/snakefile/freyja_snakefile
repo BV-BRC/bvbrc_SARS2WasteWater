@@ -122,13 +122,14 @@ rule copy_assembly_images_for_report:
 
         cp {params.assembly_image} {output.assembly_images}
         """
+
 rule freyja_variants:
     input:
         ivar_bam_sorted = "output/{sample}/assembly/{sample}.sorted.bam",
         reference = "output/{sample}/assembly/reference_trimmed.fa",
     params:
         eps = eps_val,
-        freyja_analysis_dir = directory("output/{sample}"),
+        freyja_analysis_dir = directory("output/{sample}/freyja"),
         minimum_base_quality_score = minimum_base_quality_score_val,
         tmp_dir = directory("./tmp/")
     output:

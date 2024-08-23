@@ -1,7 +1,9 @@
+from snakemake.utils import validate
+
 msg = "snakefile command recieved - STATS/Wrap up \n"
 sys.stderr.write(msg)
 
-# ruleorder: freyja_variants > freyja_demix > sample_freyja_vis
+ruleorder: set_aggregate_command > set_freyja_vis > set_timeseries_plot > multiqc
 ### Define wildcards ###
 pe_zpd_samples = glob_wildcards("staging/pe_reads/{sample}_R{read_num}.fastq.gz").sample
 pe_unzpd_samples = glob_wildcards("staging/pe_reads/{sample}_R{read_num}.fastq").sample
@@ -43,13 +45,32 @@ last_barcode_update = config["last_barcode_update"]
 minimum_genome_coverage_val = config["params"]["minimum_genome_coverage"]
 ### freyja plot variables ###
 agg_minimum_lineage_abundance_val = config["params"]["agg_minimum_lineage_abundance"]
-### version long variables ###
-primer_type = config["params"]["primers"]
-primer_version = config["params"]["primer_version"]
 
+# Initialize lists to store primers and primer versions
+primer_type = []
+primer_version = []
+
+# Extract primers and primer versions from paired_end_libs
+for lib in config['params']['paired_end_libs']:
+    primer_type.append(lib.get('primers'))
+    primer_version.append(lib.get('primer_version'))
+
+# Extract primers and primer versions from single_end_libs
+for lib in config['params']['single_end_libs']:
+    primer_type.append(lib.get('primers'))
+    primer_version.append(lib.get('primer_version'))
+
+# Extract primers and primer versions from srr_libs
+for lib in config['params']['srr_libs']:
+    primer_type.append(lib.get('primers'))
+    primer_version.append(lib.get('primer_version'))
+
+# Remove any None values if keys are not present
+primer_type = [p for p in primer_type if p]
+primer_version = [v for v in primer_version if v]
 
 rule_all_list = [
-        "output/multiqc_report.html",
+        "output/SARS2-Wastewater-Analysis-BVBRC_multiqc_report.html",
         "output/version_log.txt",
         "output/freyja_result.tsv",
         "plots/variants_plot.html",
@@ -142,10 +163,10 @@ rule multiqc:
        multiqc_config = os.path.join(workflow_dir, "multiqc_config.yaml"),
     params:
         landing_dir = directory('output'),
-        tmp_multiqc_dir = directory('output/multiqc_data')
+        tmp_multiqc_dir = directory('output/SARS2-Wastewater-Analysis-BVBRC_multiqc_report_data')
     output:
-        'output/multiqc_report.html',
-        cl_multiqc_dir = directory("clean_up/multiqc_data")
+        'output/SARS2-Wastewater-Analysis-BVBRC_SARS2-Wastewater-Analysis-BVBRC_multiqc_report.html',
+        cl_multiqc_dir = directory("clean_up/SARS2-Wastewater-Analysis-BVBRC_multiqc_report_data")
     shell:
         """
         multiqc --version
