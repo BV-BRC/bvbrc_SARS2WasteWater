@@ -120,7 +120,7 @@ sub process_read_input
     # temp
 
     my $data_dir = application_backend_dir . "/bvbrc_SARS2Wastewater/current";
-    my $barcodes_path = "$data_dir/usher_barcodes.csv";
+    my $barcodes_path = "$data_dir/usher_barcodes.feather";
     my $curated_lineages_path = "$data_dir/curated_lineages.json";
     my $lineages_path = "$data_dir/lineages.yml";
     my $last_barcode_update = "$data_dir/last_barcode_update.txt";
