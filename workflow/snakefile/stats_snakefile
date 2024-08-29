@@ -165,7 +165,7 @@ rule multiqc:
         landing_dir = directory('output'),
         tmp_multiqc_dir = directory('output/SARS2-Wastewater-Analysis-BVBRC_multiqc_report_data')
     output:
-        'output/SARS2-Wastewater-Analysis-BVBRC_SARS2-Wastewater-Analysis-BVBRC_multiqc_report.html',
+        'output/SARS2-Wastewater-Analysis-BVBRC_multiqc_report.html',
         cl_multiqc_dir = directory("clean_up/SARS2-Wastewater-Analysis-BVBRC_multiqc_report_data")
     shell:
         """
