@@ -136,7 +136,7 @@ sub process_read_input
     # Find snakemake. We need to put this in a standard location in the runtime but for now
     # use this.
     #
-    my $snakemake = "$ENV{KB_RUNTIME}/artic-ncov2019/bin/snakemake";
+    my $snakemake = "$ENV{KB_RUNTIME}/bin/snakemake";
     $config_vars{barcodes_path} = $barcodes_path;
     $config_vars{curated_lineages_path} = $curated_lineages_path;
     $config_vars{lineages_path} = $lineages_path;
